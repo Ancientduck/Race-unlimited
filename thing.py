@@ -5,6 +5,7 @@ import math
 
 from factory import garage,maps
 from kill_bug import debug
+from camera import camera
 pg.init()
 
 #debug
@@ -56,6 +57,8 @@ class Car():
         zoom = 4
         self.map = pg.transform.scale(self.map, (int(self.map.get_width()*zoom), int(self.map.get_height()*zoom)))
         
+        self.map_size = self.map.get_width(),self.map.get_height()
+
         self.camera_x = self.x - screen_width//2
         self.camera_y = self.y - screen_height//2
 
@@ -150,31 +153,24 @@ class Car():
 
        # thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
        # debug.debug_on_screen(thing,screen_size)
-    def camera(self):
-        
-        camera_width =screen_width//2
-        camera_height = screen_height//2
-
-        self.camera_x = self.x - camera_width
-        self.camera_y = self.y - camera_height
-
-        self.camera_x = max(0,min(self.camera_x,self.map.get_width()-screen_width))
-        self.camera_y = max(0,min(self.camera_y,self.map.get_height() - screen_height))
-        
     
         
-    def draw_map(self):
-        screen.blit(self.map, (-self.camera_x,-self.camera_y))
+    def draw_map(self,camera_x,camera_y):
+        screen.blit(self.map, (-camera_x,-camera_y))
 
     def draw(self):
-        self.movement()
-        self.camera()
-        self.draw_map()
 
         
+        self.movement()
 
-        car_screen_x = self.x - self.camera_x
-        car_screen_y = self.y - self.camera_y
+        camera_x,camera_y =camera(self.x,self.y,screen_size,self.map_size) #sets the camera
+
+        self.draw_map(camera_x,camera_y)
+
+        
+        
+        car_screen_x = self.x - camera_x
+        car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
         #screen.blit(self.rotated_image,(self.rotated_rect))
         screen.blit(self.rotated_image, (self.car_pos))
