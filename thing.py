@@ -1,0 +1,191 @@
+import pygame as pg
+import time 
+import sys
+import math
+
+from factory import garage,maps
+pg.init()
+
+
+#the screen things
+clock = pg.time.Clock()
+screen_width,screen_height = 1920,1000
+screen = pg.display.set_mode((screen_width,screen_height))
+pg.display.set_caption('racing')
+
+
+
+selected_map = 'river'
+bg_image = pg.image.load(maps[selected_map]['map']).convert()
+bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
+
+
+class Car():
+    def __init__(self,width,height,image,acceleration,max_speed,brake,handling):
+        global dt,selected_map
+        self.width = width
+        self.height = height
+        self.image = image
+        self.image = pg.image.load(self.image).convert_alpha()
+        self.image = pg.transform.scale(self.image, (self.width,self.height))
+        self.rect = self.image.get_rect()
+        self.x = 100
+        self.y = 600
+        self.acceleration =  acceleration
+        self.friction = 5
+        self.speed = 0
+        self.direction = 0
+        self.max_speed = max_speed
+        self.now_max_speed = max_speed
+        self.brake = brake
+        self.rotation_speed = handling
+
+        self.rotated_image = self.image
+        self.rotated_rect = self.rotated_image.get_rect(center=self.rect.center)
+        self.angle = 0
+
+        self.map = pg.image.load(maps[selected_map]['map']).convert()
+
+        zoom = 4
+        self.map = pg.transform.scale(self.map, (int(self.map.get_width()*zoom), int(self.map.get_height()*zoom)))
+        
+        self.camera_x = self.x - screen_width//2
+        self.camera_y = self.y - screen_height//2
+
+    def rotate_car(self,rotation_speed):
+        keys = pg.key.get_pressed()
+        if keys[pg.K_a]:
+            self.angle += rotation_speed
+        if keys[pg.K_d]:
+            self.angle -= rotation_speed
+
+    def on_road(self):
+        road_color = (195, 195, 195)
+        white = (255,255,255)
+        black = (0,0,0)
+        pixel_color = self.map.get_at((int(self.x),int(self.y)))[:3]
+        #print(pixel_color)
+        return pixel_color == road_color or pixel_color == white or pixel_color == black
+
+    
+
+    
+
+    def movement(self):
+        
+        rotation_speed = self.rotation_speed
+        #new_speed = self.max_speed
+        keys = pg.key.get_pressed()
+
+            
+
+        rad = math.radians(self.angle)
+    
+        dx = math.cos(rad)
+        dy = -math.sin(rad)
+
+        if keys[pg.K_SPACE]:  # Handbrake
+            self.speed *= 0.95  # simulate drift/slip, not full stop
+            rotation_speed *= 4  # much tighter turns
+            if self.speed > 0:
+                self.rotate_car(rotation_speed)
+    
+        elif keys[pg.K_w]:
+            self.speed += self.acceleration * dt
+            self.rotate_car(rotation_speed)
+
+        elif keys[pg.K_s]:
+            self.speed -= self.brake
+            if self.speed > 0:
+                self.rotate_car(rotation_speed * 3)
+            self.rotate_car(rotation_speed)
+
+        else:
+            if self.speed > 0:
+                self.speed -= self.friction
+            if self.speed > 0:
+                self.rotate_car(rotation_speed * 2)
+            
+            # === Clamp Speed ===
+        #self.speed = max(0, min(self.speed, self.max_speed))
+
+        if self.speed > self.max_speed:
+            self.speed = self.max_speed
+        elif self.speed < -self.max_speed:
+            self.speed = -self.max_speed
+
+        self.x += self.speed*dt*dx
+        self.y += self.speed*dt*dy
+
+        self.rotated_image = pg.transform.rotate(self.image,(self.angle))
+        self.rect = self.rotated_image.get_rect(center=(self.x, self.y))
+
+    
+        self.rect.center = (self.x, self.y)
+        self.rect.clamp_ip(self.map.get_rect())
+        self.x, self.y = self.rect.center
+
+        if not self.on_road():
+            if self.max_speed >= self.now_max_speed:
+                self.max_speed *= 0.5
+        else:
+            self.max_speed = self.now_max_speed
+
+        #print(f"current_speed :{self.speed}, current_angle:{self.angle}")
+
+    def camera(self):
+        
+        camera_width =screen_width//2
+        camera_height = screen_height//2
+
+        self.camera_x = self.x - camera_width
+        self.camera_y = self.y - camera_height
+
+        self.camera_x = max(0,min(self.camera_x,self.map.get_width()-screen_width))
+        self.camera_y = max(0,min(self.camera_y,self.map.get_height() - screen_height))
+
+    def draw_map(self):
+        screen.blit(self.map, (-self.camera_x,-self.camera_y))
+
+    def draw(self):
+        self.movement()
+        self.camera()
+        self.draw_map()
+
+        car_screen_x = self.x - self.camera_x
+        car_screen_y = self.y - self.camera_y
+        self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
+        #screen.blit(self.rotated_image,(self.rotated_rect))
+        screen.blit(self.rotated_image, (self.car_pos))
+
+
+
+
+
+selected_car = 'lamborghini'
+player_car = Car(**garage[selected_car])
+
+def draw_all():
+   # background()
+    player_car.draw()
+    
+
+running = True
+
+while running:
+    global dt
+    dt = clock.tick(100)/1000
+
+    for event in pg.event.get():
+        if event.type == pg.QUIT:
+            running = False
+
+
+
+    draw_all()
+    pg.display.flip()
+    clock.tick(100)
+
+
+pg.quit()
+sys.exit()
