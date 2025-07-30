@@ -85,10 +85,12 @@ class Car():
         dy = -math.sin(rad)
 
         if keys[pg.K_SPACE]:  # Handbrake
-            self.speed *= 0.95  # simulate drift/slip, not full stop
+            self.speed *= 0.95  # simulate drift/slip
+           
             rotation_speed *= 4  # much tighter turns
             if self.speed > 0:
                 self.rotate_car(rotation_speed)
+                self.speed -= self.friction
     
         elif keys[pg.K_w]:
             self.speed += self.acceleration * dt
@@ -103,9 +105,14 @@ class Car():
         else:
             if self.speed > 0:
                 self.speed -= self.friction
+                if self.speed < 0:
+                    self.speed = 0
             if self.speed > 0:
                 self.rotate_car(rotation_speed * 2)
-            
+            if self.speed < 0:
+                self.speed += self.friction
+                self.rotate_car(rotation_speed)
+                
             # === Clamp Speed ===
         #self.speed = max(0, min(self.speed, self.max_speed))
 
@@ -131,7 +138,7 @@ class Car():
         else:
             self.max_speed = self.now_max_speed
 
-        #print(f"current_speed :{self.speed}, current_angle:{self.angle}")
+        print(f"current_speed :{self.speed}, current_angle:{self.angle}")
 
     def camera(self):
         

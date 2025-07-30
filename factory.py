@@ -38,7 +38,7 @@ garage = {
         'image': "cars/lamborghini.png",
         'acceleration': 1400,
         'max_speed': 2000,
-        'brake': 13,
+        'brake': 30,
         'handling': 1.4
     }
     
