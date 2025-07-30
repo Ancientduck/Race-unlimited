@@ -4,12 +4,15 @@ import sys
 import math
 
 from factory import garage,maps
+from kill_bug import debug
 pg.init()
 
+#debug
 
 #the screen things
 clock = pg.time.Clock()
 screen_width,screen_height = 1920,1000
+screen_size = screen_width,screen_height
 screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
@@ -18,6 +21,10 @@ pg.display.set_caption('racing')
 selected_map = 'river'
 bg_image = pg.image.load(maps[selected_map]['map']).convert()
 bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
+
+
+
+
 
 
 class Car():
@@ -63,9 +70,10 @@ class Car():
         road_color = (195, 195, 195)
         white = (255,255,255)
         black = (0,0,0)
-        pixel_color = self.map.get_at((int(self.x),int(self.y)))[:3]
-        #print(pixel_color)
-        return pixel_color == road_color or pixel_color == white or pixel_color == black
+        self.pixel_color = self.map.get_at((int(self.x),int(self.y)))[:3]
+        
+        #debug.debug_on_screen(self.pixel_color,screen_size)
+        return self.pixel_color == road_color or self.pixel_color == white or self.pixel_color == black 
 
     
 
@@ -77,7 +85,7 @@ class Car():
         #new_speed = self.max_speed
         keys = pg.key.get_pressed()
 
-            
+        
 
         rad = math.radians(self.angle)
     
@@ -134,12 +142,14 @@ class Car():
 
         if not self.on_road():
             if self.max_speed >= self.now_max_speed:
+                
                 self.max_speed *= 0.5
         else:
             self.max_speed = self.now_max_speed
 
-        print(f"current_speed :{self.speed}, current_angle:{self.angle}")
 
+       # thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
+       # debug.debug_on_screen(thing,screen_size)
     def camera(self):
         
         camera_width =screen_width//2
@@ -150,7 +160,9 @@ class Car():
 
         self.camera_x = max(0,min(self.camera_x,self.map.get_width()-screen_width))
         self.camera_y = max(0,min(self.camera_y,self.map.get_height() - screen_height))
-
+        
+    
+        
     def draw_map(self):
         screen.blit(self.map, (-self.camera_x,-self.camera_y))
 
@@ -159,12 +171,13 @@ class Car():
         self.camera()
         self.draw_map()
 
+        
+
         car_screen_x = self.x - self.camera_x
         car_screen_y = self.y - self.camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
         #screen.blit(self.rotated_image,(self.rotated_rect))
         screen.blit(self.rotated_image, (self.car_pos))
-
 
 
 
@@ -190,6 +203,9 @@ while running:
 
 
     draw_all()
+
+    debug.show_bug(screen)
+
     pg.display.flip()
     clock.tick(100)
 
