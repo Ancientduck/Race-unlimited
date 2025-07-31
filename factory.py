@@ -47,12 +47,16 @@ garage = {
 
 maps = {
     "test":{
-        'map': 'maps/test.png'
+        'map': 'maps/test/test.png',
+        'road': 'maps/test/test_road.png',
     },
     'loop':{
-        'map': 'maps/loop.png'
+        'map': 'maps/loop/loop.png',
+        'road': 'maps/loop/loop_road.png',
     },
     'river':{
-        'map': 'maps/river.png'
+        'map': 'maps/river/river.png',
+        'road': 'maps/river/river_road.png',
+        
     }
 }

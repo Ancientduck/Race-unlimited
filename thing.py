@@ -2,6 +2,8 @@ import pygame as pg
 import time 
 import sys
 import math
+import cv2
+import numpy as np
 
 from factory import garage,maps
 from kill_bug import debug
@@ -37,8 +39,10 @@ class Car():
         self.image = pg.image.load(self.image).convert_alpha()
         self.image = pg.transform.scale(self.image, (self.width,self.height))
         self.rect = self.image.get_rect()
-        self.x = 100
-        self.y = 600
+
+       
+
+        zoom = 4
         self.acceleration =  acceleration
         self.friction = 5
         self.speed = 0
@@ -52,13 +56,19 @@ class Car():
         self.rotated_rect = self.rotated_image.get_rect(center=self.rect.center)
         self.angle = 0
 
+        self.road_image = pg.image.load(maps[selected_map]['road']).convert()
+        self.road_image = pg.transform.scale(self.road_image, (int(self.road_image.get_width()*zoom), int(self.road_image.get_height()*zoom)))
+        self.road = pg.mask.from_threshold(self.road_image,(255,255,255),(1,1,1))
+        
         self.map = pg.image.load(maps[selected_map]['map']).convert()
-
-        zoom = 4
         self.map = pg.transform.scale(self.map, (int(self.map.get_width()*zoom), int(self.map.get_height()*zoom)))
         
         self.map_size = self.map.get_width(),self.map.get_height()
 
+        self.x,self.y = self.find_Spawn()
+        self.x *= zoom
+        self.y *= zoom
+       # self.x,self.y = 0,0
         self.camera_x = self.x - screen_width//2
         self.camera_y = self.y - screen_height//2
 
@@ -69,14 +79,29 @@ class Car():
         if keys[pg.K_d]:
             self.angle -= rotation_speed
 
+
+
+    def find_Spawn(self): #trying the new thing. getting numpy error axis aerror 2 is out of bounds
+         # Load image
+        image = maps[selected_map]['road']
+        im = cv2.imread(image)
+
+        # Define the blue colour we want to find - remember OpenCV uses BGR ordering
+        red = [0,0,255]
+
+        # Get X and Y coordinates of all red pixels
+        Y,X = np.where(np.all(im==red,axis=2))
+        
+        return X[0],Y[0]
+
     def on_road(self):
         road_color = (195, 195, 195)
         white = (255,255,255)
         black = (0,0,0)
-        self.pixel_color = self.map.get_at((int(self.x),int(self.y)))[:3]
-        
-        #debug.debug_on_screen(self.pixel_color,screen_size)
-        return self.pixel_color == road_color or self.pixel_color == white or self.pixel_color == black 
+        self.pixel_color = self.road.get_at((int(self.x),int(self.y)))
+        self.spawn_color_check = self.road_image.get_at((int(self.x),int(self.y)))
+        debug.debug_on_screen(self.spawn_color_check,screen_size)
+        return self.pixel_color == 1
 
     
 
@@ -146,17 +171,18 @@ class Car():
         if not self.on_road():
             if self.max_speed >= self.now_max_speed:
                 
-                self.max_speed *= 0.5
+                self.max_speed *= 0.1
         else:
             self.max_speed = self.now_max_speed
 
 
-       # thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
+        thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
        # debug.debug_on_screen(thing,screen_size)
     
         
     def draw_map(self,camera_x,camera_y):
         screen.blit(self.map, (-camera_x,-camera_y))
+
 
     def draw(self):
 
@@ -189,7 +215,7 @@ def draw_all():
 running = True
 
 while running:
-    global dt
+   # global dt
     dt = clock.tick(100)/1000
 
     for event in pg.event.get():
