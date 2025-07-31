@@ -1,5 +1,5 @@
 
-base_width,base_height = 60,30
+base_width,base_height = 120,60
 
 
 garage = {
@@ -8,39 +8,57 @@ garage = {
         'width': base_width,
         'height': base_height,
         'image': "cars/aston_martin.png",
-        'acceleration': 400,
-        'max_speed': 600,
-        'brake': 8,
-        'handling': 0.3
+        'acceleration': 1400,
+        'max_speed': 1600,
+        'brake': 16,
+        'handling': 0.6
     },
 
     "glinton":{
         'width': base_width,
         'height': base_height,
         'image': "cars/glinton.png",
-        'acceleration': 500,
-        'max_speed': 700,
-        'brake': 10,
-        'handling': 0.7
+        'acceleration': 1500,
+        'max_speed': 1700,
+        'brake': 18,
+        'handling': 0.9
     },
     "esquire":{
         'width': base_width,
         'height': base_height,
         'image': "cars/esquire.png",
-        'acceleration': 700,
-        'max_speed': 400,
-        'brake': 13,
-        'handling': 1
+        'acceleration': 1700,
+        'max_speed': 1400,
+        'brake': 20,
+        'handling': 1.1
     },
     "lamborghini":{
         'width': base_width,
         'height': base_height,
         'image': "cars/lamborghini.png",
-        'acceleration': 1400,
+        'acceleration': 2300,
         'max_speed': 2000,
         'brake': 30,
         'handling': 1.4
-    }
+    },
+    "pony":{
+    'width': base_width,
+    'height': base_height,
+    'image': "cars/pony.png",
+    'acceleration': 1800,
+    'max_speed': 3000,
+    'brake': 30,
+    'handling': 1.4
+    },
+    "BMW":{
+    'width': base_width,
+    'height': base_height,
+    'image': "cars/bmw.png",
+    'acceleration': 1000,
+    'max_speed': 10000,
+    'brake': 40,
+    'handling': 2
+    },     
     
 
 }

@@ -20,8 +20,15 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
+selected_car = 'BMW' 
+#glinton
+#lamborghini
+#esquire
+#aston_martin
+#pony
+#BMW
+selected_map = 'loop'
 
-selected_map = 'river'
 bg_image = pg.image.load(maps[selected_map]['map']).convert()
 bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
 
@@ -74,11 +81,20 @@ class Car():
 
     def rotate_car(self,rotation_speed):
         keys = pg.key.get_pressed()
+        speed_loss_amount = self.acceleration*0.1
+        speed_loss = 0
+        speed_loss_start_speed = self.now_max_speed/2
         if keys[pg.K_a]:
             self.angle += rotation_speed
+            if self.speed > speed_loss_start_speed:  
+                speed_loss += speed_loss_amount
+                self.speed -= (self.acceleration+speed_loss) *dt
+
         if keys[pg.K_d]:
             self.angle -= rotation_speed
-
+            if self.speed > speed_loss_start_speed:
+                speed_loss += speed_loss_amount
+                self.speed -= (self.acceleration+speed_loss) *dt
 
 
     def find_Spawn(self): #trying the new thing. getting numpy error axis aerror 2 is out of bounds
@@ -89,6 +105,7 @@ class Car():
         # Define the blue colour we want to find - remember OpenCV uses BGR ordering
         red = [0,0,255]
 
+
         # Get X and Y coordinates of all red pixels
         Y,X = np.where(np.all(im==red,axis=2))
         
@@ -98,9 +115,10 @@ class Car():
         road_color = (195, 195, 195)
         white = (255,255,255)
         black = (0,0,0)
+        red = (255,0,0)
         self.pixel_color = self.road.get_at((int(self.x),int(self.y)))
         self.spawn_color_check = self.road_image.get_at((int(self.x),int(self.y)))
-        debug.debug_on_screen(self.spawn_color_check,screen_size)
+        debug.debug_on_screen(self.spawn_color_check)
         return self.pixel_color == 1
 
     
@@ -130,6 +148,8 @@ class Car():
     
         elif keys[pg.K_w]:
             self.speed += self.acceleration * dt
+            if self.speed < 0:
+                self.speed += (5*self.acceleration) *dt
             self.rotate_car(rotation_speed)
 
         elif keys[pg.K_s]:
@@ -169,15 +189,16 @@ class Car():
         self.x, self.y = self.rect.center
 
         if not self.on_road():
-            if self.max_speed >= self.now_max_speed:
-                
-                self.max_speed *= 0.1
-        else:
-            self.max_speed = self.now_max_speed
+            if self.speed > 300 and self.speed > 0 :
+                self.speed -= self.acceleration*5*dt
+
 
 
         thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
-       # debug.debug_on_screen(thing,screen_size)
+        thing3 = 'yo'
+        debug.debug_on_screen(thing)
+        debug.debug_on_screen(thing3)
+       
     
         
     def draw_map(self,camera_x,camera_y):
@@ -204,7 +225,6 @@ class Car():
 
 
 
-selected_car = 'lamborghini'
 player_car = Car(**garage[selected_car])
 
 def draw_all():
@@ -226,7 +246,7 @@ while running:
 
     draw_all()
 
-    debug.show_bug(screen)
+    debug.show_bug(screen,screen_size)
 
     pg.display.flip()
     clock.tick(100)
