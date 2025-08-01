@@ -20,7 +20,7 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
-selected_car = 'BMW' 
+selected_car = 'pony' 
 #glinton
 #lamborghini
 #esquire
@@ -51,7 +51,7 @@ class Car():
 
         zoom = 4
         self.acceleration =  acceleration
-        self.friction = 5
+        self.friction = 500
         self.speed = 0
         self.direction = 0
         self.max_speed = max_speed
@@ -79,11 +79,21 @@ class Car():
         self.camera_x = self.x - screen_width//2
         self.camera_y = self.y - screen_height//2
 
+
+        #drift
+        self.velocity = pg.Vector2(0,0)
+        self.brake_drift = False
+       #  self.facing_angle = 0
+        self.drift_factor = 0.99 # more is more drift 
+
+
+        self.friction_off_road = 0.05
     def rotate_car(self,rotation_speed):
         keys = pg.key.get_pressed()
-        speed_loss_amount = self.acceleration*0.1
+        speed_loss_amount = self.acceleration*dt
         speed_loss = 0
         speed_loss_start_speed = self.now_max_speed/2
+        self.speed = self.velocity.length()
         if keys[pg.K_a]:
             self.angle += rotation_speed
             if self.speed > speed_loss_start_speed:  
@@ -118,12 +128,18 @@ class Car():
         red = (255,0,0)
         self.pixel_color = self.road.get_at((int(self.x),int(self.y)))
         self.spawn_color_check = self.road_image.get_at((int(self.x),int(self.y)))
-        debug.debug_on_screen(self.spawn_color_check)
+       # debug.debug_on_screen(self.spawn_color_check)
         return self.pixel_color == 1
 
     
-
-    
+    def drift(self,vector,velocity,drifting):
+        forward  = vector
+        v = velocity
+        dot = self.velocity.dot(forward)
+        lateral = self.velocity - forward * dot
+        v -= lateral * (1 - drifting)
+        debug.debug_on_screen(f'going sideways = {lateral}','blue')
+        return v
 
     def movement(self):
         
@@ -138,47 +154,68 @@ class Car():
         dx = math.cos(rad)
         dy = -math.sin(rad)
 
-        if keys[pg.K_SPACE]:  # Handbrake
-            self.speed *= 0.95  # simulate drift/slip
-           
-            rotation_speed *= 4  # much tighter turns
-            if self.speed > 0:
+        forward = pg.Vector2(dx,dy)
+        
+
+
+        if keys[pg.K_SPACE]:
+            self.brake_drift = True
+            self.speed = self.velocity.length()  # Handbrake
+            self.speed += -self.friction*dt  # simulate drift/slip
+            self.velocity = self.drift(forward,self.velocity,(self.drift_factor+1))
+
+            rotation_speed *= 3  # much tighter turns
+            if self.speed > 0:        
                 self.rotate_car(rotation_speed)
-                self.speed -= self.friction
+                ## FIX THE HAND BREAK MAKING THE CAR GO LIGHT SPEED
     
-        elif keys[pg.K_w]:
-            self.speed += self.acceleration * dt
+        if keys[pg.K_w]:
+            self.velocity += self.acceleration * dt*forward
             if self.speed < 0:
                 self.speed += (5*self.acceleration) *dt
             self.rotate_car(rotation_speed)
 
         elif keys[pg.K_s]:
-            self.speed -= self.brake
-            if self.speed > 0:
-                self.rotate_car(rotation_speed * 3)
+            way = self.velocity.dot(forward)
+            debug.debug_on_screen(way,'red')
+            if way > -500:
+                self.velocity -= self.brake*forward
+            if self.speed > self.max_speed/2:
+                self.rotate_car(rotation_speed * 1.4)
             self.rotate_car(rotation_speed)
-
         else:
+            #friction
+            self.speed = self.velocity.length()
+
             if self.speed > 0:
-                self.speed -= self.friction
-                if self.speed < 0:
-                    self.speed = 0
+                friction_force = self.velocity.normalize() * -self.friction
+                self.velocity += friction_force*dt
+                if self.speed <15:
+                    self.velocity = pg.Vector2(0,0)        
+            
+            if self.speed > self.max_speed:
+                self.velocity.scale_to_length(self.max_speed)
+            
             if self.speed > 0:
-                self.rotate_car(rotation_speed * 2)
+                self.rotate_car(rotation_speed * 1.3)
             if self.speed < 0:
                 self.speed += self.friction
                 self.rotate_car(rotation_speed)
-                
-            # === Clamp Speed ===
-        #self.speed = max(0, min(self.speed, self.max_speed))
 
-        if self.speed > self.max_speed:
-            self.speed = self.max_speed
-        elif self.speed < -self.max_speed:
-            self.speed = -self.max_speed
+        thing1 = f'the vector velocity: {self.velocity}'
+        thing2 = f'SPEED: {self.speed}'
+        debug.debug_on_screen(thing1,'blue')
+        debug.debug_on_screen(thing2,'black')
+        
+         # ===== drifting part ====
+        if not self.brake_drift:
+            self.velocity = self.drift(forward,self.velocity,self.drift_factor)
+        
+         
 
-        self.x += self.speed*dt*dx
-        self.y += self.speed*dt*dy
+                                            ### MAKING DRIFT LOGIC
+        self.x += self.velocity.x *dt ## MOVES THE CAR
+        self.y += self.velocity.y *dt
 
         self.rotated_image = pg.transform.rotate(self.image,(self.angle))
         self.rect = self.rotated_image.get_rect(center=(self.x, self.y))
@@ -189,15 +226,17 @@ class Car():
         self.x, self.y = self.rect.center
 
         if not self.on_road():
-            if self.speed > 300 and self.speed > 0 :
-                self.speed -= self.acceleration*5*dt
+            self.speed = self.velocity.length()
+            if self.speed > self.max_speed/3:
+                off_road_fiction = self.velocity.normalize()*-self.friction*20
+                self.velocity += off_road_fiction *dt
 
 
+        self.speed = self.velocity.length()
 
-        thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
-        thing3 = 'yo'
-        debug.debug_on_screen(thing)
-        debug.debug_on_screen(thing3)
+        #thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
+       # debug.debug_on_screen(thing)
+
        
     
         
@@ -219,7 +258,7 @@ class Car():
         car_screen_x = self.x - camera_x
         car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
-        #screen.blit(self.rotated_image,(self.rotated_rect))
+
         screen.blit(self.rotated_image, (self.car_pos))
 
 

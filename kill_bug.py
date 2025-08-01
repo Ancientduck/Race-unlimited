@@ -13,7 +13,18 @@ class Debug():
         self.color = (0)
         self.font = pg.font.SysFont('consolas  ',24,bold=True) 
         self.somethings = [] 
-        self.colors = {}
+        self.chosen_color = 0
+        self.colors = {
+            'black':{
+                'color': (0,0,0)
+            },
+            'blue':{
+                'color': (0,0,255)
+            },
+            'red':{
+                'color':(255,0,0)
+            },
+        }
     def control(self,screen_size):
         self.screen_width,self.screen_height = screen_size
         # if not self.set:
@@ -21,24 +32,25 @@ class Debug():
         #     self.set = True
         keys = pg.key.get_pressed()
         if keys[pg.K_UP]:
-            self.y -= 1
+            self.y -= 10
         elif keys[pg.K_DOWN]:
-            self.y += 1
+            self.y += 10
         elif keys[pg.K_LEFT]:
-            self.x -= 1
+            self.x -= 10
         elif keys[pg.K_RIGHT]:
-            self.x += 1
+            self.x += 10
 
 
 
-    def debug_on_screen(self,things=None):
+    def debug_on_screen(self,things=None,color=None):
         if things == None:
             return
-        
-       # if text == None:
-       #     text = " "
+        self.chosen_color = color
 
-        self.somethings.append((things))
+        if color not in self.colors:
+            color = 'black'
+
+        self.somethings.append((things,color))
         
 
 
@@ -46,11 +58,9 @@ class Debug():
         self.control(screen_size) 
      
         if self.somethings:
-            for i,(thing) in enumerate(self.somethings):
-                if i not in self.colors:
-                    self.colors[i] = (random.randint(155, 255), random.randint(0, 255), random.randint(0, 255))  # Random color
-                
-                self.text = self.font.render(f'{thing}',True, self.colors[i])
+            for i,(thing,color_key) in enumerate(self.somethings):
+                color = self.colors[color_key]['color']  # Random color
+                self.text = self.font.render(f'{thing}',True, color)
                 screen.blit(self.text,(self.x,self.y+i*20))
             self.somethings.clear()
                 
