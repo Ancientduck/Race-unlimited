@@ -27,7 +27,7 @@ selected_car = 'pony'
 #aston_martin
 #pony
 #BMW
-selected_map = 'loop'
+selected_map = 'test'
 
 bg_image = pg.image.load(maps[selected_map]['map']).convert()
 bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
@@ -83,24 +83,25 @@ class Car():
         #drift
         self.velocity = pg.Vector2(0,0)
         self.brake_drift = False
+        self.drift_factor = 0.1 # more is more drift 
+        self.new_drift = self.drift_factor
        #  self.facing_angle = 0
-        self.drift_factor = 0.99 # more is more drift 
 
 
         self.friction_off_road = 0.05
     def rotate_car(self,rotation_speed):
-        keys = pg.key.get_pressed()
+        self.keys = pg.key.get_pressed()
         speed_loss_amount = self.acceleration*dt
         speed_loss = 0
         speed_loss_start_speed = self.now_max_speed/2
         self.speed = self.velocity.length()
-        if keys[pg.K_a]:
+        if self.keys[pg.K_a]:
             self.angle += rotation_speed
             if self.speed > speed_loss_start_speed:  
                 speed_loss += speed_loss_amount
                 self.speed -= (self.acceleration+speed_loss) *dt
 
-        if keys[pg.K_d]:
+        if self.keys[pg.K_d]:
             self.angle -= rotation_speed
             if self.speed > speed_loss_start_speed:
                 speed_loss += speed_loss_amount
@@ -133,21 +134,22 @@ class Car():
 
     
     def drift(self,vector,velocity,drifting):
-        forward  = vector
+        direction  = vector
         v = velocity
-        dot = self.velocity.dot(forward)
-        lateral = self.velocity - forward * dot
-        v -= lateral * (1 - drifting)
+        forward = direction * velocity.dot(direction)
+        lateral = velocity - forward
+        v = forward + lateral * drifting
         debug.debug_on_screen(f'going sideways = {lateral}','blue')
         return v
+    
 
     def movement(self):
         
         rotation_speed = self.rotation_speed
         #new_speed = self.max_speed
-        keys = pg.key.get_pressed()
+        self.keys = pg.key.get_pressed()
 
-        
+        #self.new_drift = 0
 
         rad = math.radians(self.angle)
     
@@ -156,26 +158,40 @@ class Car():
 
         forward = pg.Vector2(dx,dy)
         
+            
+        
+        if self.keys[pg.K_SPACE]:
+            if self.velocity.length() > 0:
+                friction_force = self.velocity.normalize() * -dt  * self.acceleration
+                self.velocity += friction_force
+                debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
+                # Stop if speed gets too low
+                if self.velocity.length() < 15:
+                    self.velocity = pg.Vector2(0, 0)
+            
+            max_drift = 2.5
+            if self.new_drift < max_drift:
+                self.new_drift += 0.05  # HIGH = more sli   p
 
-
-        if keys[pg.K_SPACE]:
-            self.brake_drift = True
-            self.speed = self.velocity.length()  # Handbrake
-            self.speed += -self.friction*dt  # simulate drift/slip
-            self.velocity = self.drift(forward,self.velocity,(self.drift_factor+1))
-
-            rotation_speed *= 3  # much tighter turns
-            if self.speed > 0:        
+            rotation_speed *= 1.1
+            if self.speed > 0:
                 self.rotate_car(rotation_speed)
-                ## FIX THE HAND BREAK MAKING THE CAR GO LIGHT SPEED
-    
-        if keys[pg.K_w]:
+        else:
+            if self.new_drift > self.drift_factor:
+                self.new_drift -= 0.02
+                  # recover grip gradually
+                
+           # self.new_drift = self.drift_factor  # default value
+        debug.debug_on_screen(self.new_drift,'blue')
+        
+
+        if self.keys[pg.K_w]:
             self.velocity += self.acceleration * dt*forward
             if self.speed < 0:
                 self.speed += (5*self.acceleration) *dt
             self.rotate_car(rotation_speed)
 
-        elif keys[pg.K_s]:
+        elif self.keys[pg.K_s]:
             way = self.velocity.dot(forward)
             debug.debug_on_screen(way,'red')
             if way > -500:
@@ -204,12 +220,13 @@ class Car():
 
         thing1 = f'the vector velocity: {self.velocity}'
         thing2 = f'SPEED: {self.speed}'
+        
         debug.debug_on_screen(thing1,'blue')
         debug.debug_on_screen(thing2,'black')
         
          # ===== drifting part ====
-        if not self.brake_drift:
-            self.velocity = self.drift(forward,self.velocity,self.drift_factor)
+
+        self.velocity = self.drift(forward,self.velocity,(self.drift_factor*self.new_drift))
         
          
 

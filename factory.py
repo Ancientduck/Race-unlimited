@@ -23,6 +23,7 @@ garage = {
         'brake': 18,
         'handling': 0.9
     },
+
     "esquire":{
         'width': base_width,
         'height': base_height,
@@ -32,6 +33,7 @@ garage = {
         'brake': 20,
         'handling': 1.1
     },
+
     "lamborghini":{
         'width': base_width,
         'height': base_height,
@@ -41,6 +43,7 @@ garage = {
         'brake': 30,
         'handling': 1.4
     },
+
     "pony":{
     'width': base_width,
     'height': base_height,
@@ -50,14 +53,15 @@ garage = {
     'brake': 30,
     'handling': 1.4
     },
+
     "BMW":{
     'width': base_width,
     'height': base_height,
     'image': "cars/bmw.png",
-    'acceleration': 1000,
+    'acceleration': 2000,
     'max_speed': 10000,
     'brake': 40,
-    'handling': 2
+    'handling': 1.6
     },     
     
 
@@ -68,10 +72,12 @@ maps = {
         'map': 'maps/test/test.png',
         'road': 'maps/test/test_road.png',
     },
+
     'loop':{
         'map': 'maps/loop/loop.png',
         'road': 'maps/loop/loop_road.png',
     },
+
     'river':{
         'map': 'maps/river/river.png',
         'road': 'maps/river/river_road.png',
