@@ -82,5 +82,10 @@ maps = {
         'map': 'maps/river/river.png',
         'road': 'maps/river/river_road.png',
         
+    },
+    'city':{
+        'map': 'maps/city/city.png',
+        'road': 'maps\city\city_road.png',
+        
     }
 }

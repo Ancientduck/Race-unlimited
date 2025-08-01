@@ -20,15 +20,19 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
-selected_car = 'pony' 
+selected_car = 'BMW' 
 #glinton
 #lamborghini
 #esquire
 #aston_martin
 #pony
 #BMW
-selected_map = 'test'
 
+selected_map = 'river'
+#test
+#loop
+#river
+#city #not good
 bg_image = pg.image.load(maps[selected_map]['map']).convert()
 bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
 
@@ -83,7 +87,7 @@ class Car():
         #drift
         self.velocity = pg.Vector2(0,0)
         self.brake_drift = False
-        self.drift_factor = 0.1 # more is more drift 
+        self.drift_factor = 0.8 # more is more drift 
         self.new_drift = self.drift_factor
        #  self.facing_angle = 0
 
@@ -129,19 +133,22 @@ class Car():
         red = (255,0,0)
         self.pixel_color = self.road.get_at((int(self.x),int(self.y)))
         self.spawn_color_check = self.road_image.get_at((int(self.x),int(self.y)))
-       # debug.debug_on_screen(self.spawn_color_check)
+        
         return self.pixel_color == 1
 
-    
-    def drift(self,vector,velocity,drifting):
-        direction  = vector
-        v = velocity
-        forward = direction * velocity.dot(direction)
+        
+    def drift(self, vector, velocity, drifting):
+        forward = vector * velocity.dot(vector)
         lateral = velocity - forward
-        v = forward + lateral * drifting
-        debug.debug_on_screen(f'going sideways = {lateral}','blue')
+        
+        # Grip should be inverse of drift
+        grip = 1.0 - drifting
+        
+        # Keep all forward velocity, reduce lateral based on grip
+        v = forward + lateral * grip
+
         return v
-    
+        
 
     def movement(self):
         
@@ -162,27 +169,27 @@ class Car():
         
         if self.keys[pg.K_SPACE]:
             if self.velocity.length() > 0:
-                friction_force = self.velocity.normalize() * -dt  * self.acceleration
+                friction_force = self.velocity.normalize() * -dt * self.acceleration*1.6
                 self.velocity += friction_force
-                debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
+                #debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
                 # Stop if speed gets too low
                 if self.velocity.length() < 15:
                     self.velocity = pg.Vector2(0, 0)
             
-            max_drift = 2.5
-            if self.new_drift < max_drift:
-                self.new_drift += 0.05  # HIGH = more sli   p
+            max_drift = 0.3
+            if self.new_drift > max_drift:
+                self.new_drift -= 0.05  # LOW = more sli   p
 
-            rotation_speed *= 1.1
+            rotation_speed *= 1.6
             if self.speed > 0:
                 self.rotate_car(rotation_speed)
         else:
-            if self.new_drift > self.drift_factor:
-                self.new_drift -= 0.02
+            if self.new_drift < self.drift_factor:
+                self.new_drift += 0.02
                   # recover grip gradually
                 
            # self.new_drift = self.drift_factor  # default value
-        debug.debug_on_screen(self.new_drift,'blue')
+       # debug.debug_on_screen(self.new_drift,'blue')
         
 
         if self.keys[pg.K_w]:
@@ -193,7 +200,7 @@ class Car():
 
         elif self.keys[pg.K_s]:
             way = self.velocity.dot(forward)
-            debug.debug_on_screen(way,'red')
+           # debug.debug_on_screen(way,'red')
             if way > -500:
                 self.velocity -= self.brake*forward
             if self.speed > self.max_speed/2:
@@ -218,11 +225,11 @@ class Car():
                 self.speed += self.friction
                 self.rotate_car(rotation_speed)
 
-        thing1 = f'the vector velocity: {self.velocity}'
-        thing2 = f'SPEED: {self.speed}'
+        # thing1 = f'the vector velocity: {self.velocity}'
+        # thing2 = f'SPEED: {self.speed}'
         
-        debug.debug_on_screen(thing1,'blue')
-        debug.debug_on_screen(thing2,'black')
+        # debug.debug_on_screen(thing1,'blue')
+        # debug.debug_on_screen(thing2,'black')
         
          # ===== drifting part ====
 
@@ -243,6 +250,8 @@ class Car():
         self.x, self.y = self.rect.center
 
         if not self.on_road():
+            #debug.debug_on_screen(self.pixel_color,'black')
+            #debug.debug_on_screen(f'no on road','red')
             self.speed = self.velocity.length()
             if self.speed > self.max_speed/3:
                 off_road_fiction = self.velocity.normalize()*-self.friction*20
