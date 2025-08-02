@@ -11,7 +11,7 @@ garage = {
         'acceleration': 1400,
         'max_speed': 1600,
         'brake': 16,
-        'handling': 0.6
+        'handling': 0.3
     },
 
     "glinton":{
@@ -21,7 +21,7 @@ garage = {
         'acceleration': 1500,
         'max_speed': 1700,
         'brake': 18,
-        'handling': 0.9
+        'handling': 0.4
     },
 
     "esquire":{
@@ -31,7 +31,7 @@ garage = {
         'acceleration': 1700,
         'max_speed': 1400,
         'brake': 20,
-        'handling': 1.1
+        'handling': 0.55
     },
 
     "lamborghini":{
@@ -41,7 +41,7 @@ garage = {
         'acceleration': 2300,
         'max_speed': 2000,
         'brake': 30,
-        'handling': 1.4
+        'handling': 0.7
     },
 
     "pony":{
@@ -51,7 +51,7 @@ garage = {
     'acceleration': 1800,
     'max_speed': 3000,
     'brake': 30,
-    'handling': 1.4
+    'handling': 0.7
     },
 
     "BMW":{
@@ -61,7 +61,7 @@ garage = {
     'acceleration': 2000,
     'max_speed': 10000,
     'brake': 40,
-    'handling': 1.6
+    'handling': 0.8
     },     
     
 
@@ -87,5 +87,10 @@ maps = {
         'map': 'maps/city/city.png',
         'road': 'maps\city\city_road.png',
         
+    },
+    'village':{
+        'map': 'maps/village/village.png',
+        'road': 'maps/village/village_road.png',
+    
     }
 }
