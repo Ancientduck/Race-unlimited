@@ -12,3 +12,5 @@ subprocess.run([bash,'-c',f'cd "{current_directory}"'])
 subprocess.run([bash,'-c','git add .'])
 subprocess.run([bash,'-c',f'git commit -m "{msg}"'])
 subprocess.run([bash,'-c','git push'])
+
+print('done')
