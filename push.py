@@ -13,7 +13,8 @@ subprocess.run([
     f'cd "{current_directory}" && '
     f'git add . && '
     f'git commit -m "{msg}" && '
-    'git push'
+    f'git push && '
+    'read -n 1 -s -p "Press any key to continue..."'
 ])
 
 print('done')
