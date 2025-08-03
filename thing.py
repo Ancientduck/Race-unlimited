@@ -22,7 +22,7 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
-selected_car = 'lamborghini' 
+selected_car = 'BMW' 
 #glinton
 #lamborghini
 #esquire
@@ -30,7 +30,7 @@ selected_car = 'lamborghini'
 #pony
 #BMW
 
-selected_map = 'river'
+selected_map = 'village'
 #test
 #loop
 #river
