@@ -50,8 +50,8 @@ def check_zoom():
     map_height = raw_map.get_height()
 
     # Reference map stats
-    ref_width = 7656/4
-    ref_height = 3740/4
+    ref_width = 1914
+    ref_height = 935
     ref_zoom = 6
 
     # Calculate average sizes
@@ -121,23 +121,6 @@ class Car():
 
 
         #self.friction_off_road = 0.05
-    def rotate_car(self,rotation_speed):
-        self.keys = pg.key.get_pressed()
-        speed_loss_amount = self.acceleration*dt
-        speed_loss = 0
-        speed_loss_start_speed = self.now_max_speed/2
-        self.speed = self.velocity.length()
-        if self.keys[pg.K_a]:
-            self.angle += rotation_speed
-            if self.speed > speed_loss_start_speed:  
-                speed_loss += speed_loss_amount
-                self.speed -= (self.acceleration+speed_loss) *dt
-
-        if self.keys[pg.K_d]:
-            self.angle -= rotation_speed
-            if self.speed > speed_loss_start_speed:
-                speed_loss += speed_loss_amount
-                self.speed -= (self.acceleration+speed_loss) *dt
 
 
     def find_Spawn(self): #trying the new thing. getting numpy error axis aerror 2 is out of bounds
@@ -177,6 +160,24 @@ class Car():
 
         return v
         
+    def rotate_car(self,rotation_speed):
+        self.keys = pg.key.get_pressed()
+        speed_loss_amount = self.acceleration*dt
+        speed_loss = 0
+        speed_loss_start_speed = self.now_max_speed/2
+        self.speed = self.velocity.length()
+
+        if self.keys[pg.K_a]:
+            self.angle += rotation_speed
+            if self.speed > speed_loss_start_speed:  
+                speed_loss += speed_loss_amount
+                self.speed -= (self.acceleration+speed_loss) *dt
+
+        if self.keys[pg.K_d]:
+            self.angle -= rotation_speed
+            if self.speed > speed_loss_start_speed:
+                speed_loss += speed_loss_amount
+                self.speed -= (self.acceleration+speed_loss) *dt
 
     def movement(self):
         
@@ -208,7 +209,7 @@ class Car():
             if self.new_drift > max_drift:
                 self.new_drift -= 0.05  # LOW = more sli   p
 
-            rotation_speed *= 1.6
+            rotation_speed *= 1.5
             if self.speed > 0:
                 self.rotate_car(rotation_speed)
         else:
@@ -219,6 +220,8 @@ class Car():
            # self.new_drift = self.drift_factor  # default value
        # debug.debug_on_screen(self.new_drift,'blue')
         
+        if self.speed > self.max_speed:
+            self.velocity.scale_to_length(self.max_speed)
 
         if self.keys[pg.K_w]:
             self.velocity += self.acceleration * dt*forward
@@ -235,8 +238,6 @@ class Car():
                 self.rotate_car(rotation_speed * 1.4)
             self.rotate_car(rotation_speed)
 
-        if self.speed > self.max_speed:
-            self.velocity.scale_to_length(self.max_speed)
         else:
             #friction
             self.speed = self.velocity.length()
@@ -244,16 +245,17 @@ class Car():
             if self.speed > 0:
                 friction_force = self.velocity.normalize() * -self.friction
                 self.velocity += friction_force*dt
-                if self.speed <15:
+                minumum_speed_for_friction = 15
+                if self.speed <minumum_speed_for_friction:
                     self.velocity = pg.Vector2(0,0)        
-            
-            
+           #if W is not pressed  
             if self.speed > 0:
-                self.rotate_car(rotation_speed * 1.3)
+                self.rotate_car(rotation_speed * 2)
             if self.speed < 0:
                 self.speed += self.friction
                 self.rotate_car(rotation_speed)
 
+        debug.debug_on_screen(f'rotation_power:{rotation_speed}','blue')
         # thing1 = f'the vector velocity: {self.velocity}'
         thing2 = f'SPEED: {self.speed}'
     
@@ -282,13 +284,13 @@ class Car():
         
         white = (255,255,255)
         if self.pixel_color != white:
+            debug.debug_on_screen(f'no on road','red')
             self.speed = self.velocity.length()
             if self.speed > self.max_speed/3:
                 off_road_fiction = self.velocity.normalize()*-self.friction*20
                 self.velocity += off_road_fiction *dt
 
         debug.debug_on_screen(self.pixel_color,'black')
-        debug.debug_on_screen(f'no on road','red')
         self.speed = self.velocity.length()
 
         #thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"

@@ -11,7 +11,7 @@ garage = {
         'acceleration': 1400,
         'max_speed': 1600,
         'brake': 16,
-        'handling': 0.3
+        'handling': 0.6
     },
 
     "glinton":{
@@ -21,7 +21,7 @@ garage = {
         'acceleration': 1500,
         'max_speed': 1700,
         'brake': 18,
-        'handling': 0.4
+        'handling': 0.6
     },
 
     "esquire":{
@@ -31,7 +31,7 @@ garage = {
         'acceleration': 1700,
         'max_speed': 1400,
         'brake': 20,
-        'handling': 0.55
+        'handling': 0.6
     },
 
     "lamborghini":{
