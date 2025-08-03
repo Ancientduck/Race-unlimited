@@ -2,6 +2,7 @@ import subprocess
 import os 
 
 current_directory = os.getcwd()
+print(current_directory)
 msg = input(' whats the msg? : ').strip()
 
 if msg == '':
