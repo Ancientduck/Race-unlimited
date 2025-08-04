@@ -92,5 +92,11 @@ maps = {
         'map': 'maps/village/village.png',
         'road': 'maps/village/village_road.png',
     
-    }
+    },
+    'high_way':{
+        'map': 'maps/high_way/high_way.png',
+        'road': 'maps/high_way/high_way_road.png',
+    
+    },
+
 }

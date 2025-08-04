@@ -30,12 +30,13 @@ selected_car = 'BMW'
 #pony
 #BMW
 
-selected_map = 'village'
+selected_map = 'high_way'
 #test
 #loop
 #river
 #city #not good
 #village
+#high_way 
 
 bg_image = pg.image.load(maps[selected_map]['map']).convert_alpha()
 bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
@@ -52,7 +53,7 @@ def check_zoom():
     # Reference map stats
     ref_width = 1914
     ref_height = 935
-    ref_zoom = 6
+    ref_zoom = 12
 
     # Calculate average sizes
     ref_avg = (ref_width + ref_height) / 2
@@ -78,8 +79,9 @@ class Car():
 
        
 
-        zoom = check_zoom()
-
+        self.zoom = check_zoom()
+        
+        self.original_acceleration = acceleration
         self.acceleration =  acceleration
         self.friction = 500
         self.speed = 0
@@ -94,18 +96,18 @@ class Car():
         self.angle = 0
 
         self.road_image = pg.image.load(maps[selected_map]['road']).convert_alpha()
-        self.road_image = pg.transform.scale(self.road_image, (int(self.road_image.get_width()*zoom), int(self.road_image.get_height()*zoom)))
+        self.road_image = pg.transform.scale(self.road_image, (int(self.road_image.get_width()*self.zoom), int(self.road_image.get_height()*self.zoom)))
         self.road = self.road_image
         
         self.map = pg.image.load(maps[selected_map]['map']).convert_alpha()
-        self.map = pg.transform.scale(self.map, (int(self.map.get_width()*zoom), int(self.map.get_height()*zoom)))
+        self.map = pg.transform.scale(self.map, (int(self.map.get_width()*self.zoom), int(self.map.get_height()*self.zoom)))
         
         self.map_size = self.map.get_width(),self.map.get_height()
 
 
         self.x,self.y = self.find_Spawn()
-        self.x *= zoom
-        self.y *= zoom
+        self.x *= self.zoom
+        self.y *= self.zoom
        # print(self.map_size)
        # self.x,self.y = 0,0
         self.camera_x = self.x - screen_width//2
@@ -117,13 +119,15 @@ class Car():
         self.brake_drift = False
         self.drift_factor = 0.3 # more is more grip 
         self.new_drift = self.drift_factor
-       #  self.facing_angle = 0
+
+        speed_meter_Size = 200,200
+        self.speed_meter_image = pg.image.load('speed_meter.png')
+        self.speed_meter_image = pg.transform.scale(self.speed_meter_image,(speed_meter_Size))      
+
+        
 
 
-        #self.friction_off_road = 0.05
-
-
-    def find_Spawn(self): #trying the new thing. getting numpy error axis aerror 2 is out of bounds
+    def find_Spawn(self): #//trying the new thing. getting numpy error axis aerror 2 is out of bounds
          # Load image
         image = maps[selected_map]['road']
         im = cv2.imread(image)
@@ -200,8 +204,7 @@ class Car():
             if self.velocity.length() > 0:
                 friction_force = self.velocity.normalize() * -dt * self.acceleration*1.05
                 self.velocity += friction_force
-                #debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
-                # Stop if speed gets too low
+                
                 if self.velocity.length() < 15:
                     self.velocity = pg.Vector2(0, 0)
             
@@ -217,31 +220,39 @@ class Car():
                 self.new_drift += 0.02
                   # recover grip gradually
                 
-           # self.new_drift = self.drift_factor  # default value
-       # debug.debug_on_screen(self.new_drift,'blue')
+           
         
         if self.speed > self.max_speed:
             self.velocity.scale_to_length(self.max_speed)
 
         if self.keys[pg.K_w]:
+            
             self.velocity += self.acceleration * dt*forward
+            
             if self.speed < 0:
                 self.speed += (5*self.acceleration) *dt
             self.rotate_car(rotation_speed)
 
+            # if new_a > 0:
+            #     new_a = self.original_acceleration - 0.1*self.speed 
+            #     self.acceleration = new_a
+            
+
         elif self.keys[pg.K_s]:
             way = self.velocity.dot(forward)
-           # debug.debug_on_screen(way,'red')
             if way > -500:
                 self.velocity -= self.brake*forward
             if self.speed > self.max_speed/2:
                 self.rotate_car(rotation_speed * 1.4)
             self.rotate_car(rotation_speed)
+        
+
+        
 
         else:
             #friction
             self.speed = self.velocity.length()
-
+            
             if self.speed > 0:
                 friction_force = self.velocity.normalize() * -self.friction
                 self.velocity += friction_force*dt
@@ -254,21 +265,21 @@ class Car():
             if self.speed < 0:
                 self.speed += self.friction
                 self.rotate_car(rotation_speed)
-
-        debug.debug_on_screen(f'rotation_power:{rotation_speed}','blue')
-        # thing1 = f'the vector velocity: {self.velocity}'
-        thing2 = f'SPEED: {self.speed}'
-    
-        # debug.debug_on_screen(thing1,'blue')
-        debug.debug_on_screen(thing2,'black')
+       
         
          # ===== drifting part ====
+
+
+        if self.acceleration > 0:
+                acceleration_modifer = (self.speed/self.max_speed)*self.original_acceleration
+
+                self.acceleration = self.original_acceleration - acceleration_modifer
+      
 
         self.velocity = self.drift(forward,self.velocity,(self.drift_factor*self.new_drift))
         
          
-
-                                            ### MAKING DRIFT LOGIC
+        ### MAKING DRIFT LOGIC
         self.x += self.velocity.x *dt ## MOVES THE CAR
         self.y += self.velocity.y *dt
 
@@ -290,27 +301,74 @@ class Car():
                 off_road_fiction = self.velocity.normalize()*-self.friction*20
                 self.velocity += off_road_fiction *dt
 
-        debug.debug_on_screen(self.pixel_color,'black')
+        
+
+        debug.debug_on_screen(self.acceleration)
         self.speed = self.velocity.length()
 
         #thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
-       # debug.debug_on_screen(thing)
 
-       
+        # debug.debug_on_screen(thing)
+        #debug.debug_on_screen(self.pixel_color,'black')
+
+        # debug.debug_on_screen(f'the way: {self.velocity.dot(forward)}','green')
+        #debug.debug_on_screen(f'rotation_power:{rotation_speed}','blue')
+
+        # thing1 = f'the vector velocity: {self.velocity}'
+        #thing2 = f'SPEED: {self.speed}'
     
+        # debug.debug_on_screen(thing1,'blue')
+        #debug.debug_on_screen(thing2,'black')
+
+        # self.new_drift = self.drift_factor  # default value
+       # debug.debug_on_screen(self.new_drift,'blue')
+
+       #debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
+        # Stop if speed gets too low
+
+        #self.speed_meter()
+       
+    def speed_meter(self,):
+        car_speed = int(self.speed*0.03)
+        
+        image = self.speed_meter_image
+        x = 0 
+        y = 0
+        rect = image.get_rect(center = (x,y))
+
+        rect.x = 0 #image.get_width()
+        rect.y = screen_height - image.get_height() 
+
+        pos = rect.x,rect.y 
+        
+        speed_num_pos = (rect.centerx-30, rect.centery-30)
+        debug.debug_on_screen(speed_num_pos)
+
+        font = pg.font.SysFont(None, 48)  # (Font name, size)
+        speed = font.render(f"{car_speed}", True, (255, 255, 255))  # White text
+
+        screen.blit(image,(rect.x,rect.y))
+        screen.blit(speed, speed_num_pos)
+
         
     def draw_map(self,camera_x,camera_y):
         screen.blit(self.map, (-camera_x,-camera_y))
+
+
+
+  #  def car_sound_manager(self):
+    #    car_moving_loop = pg.mixer.Sound('')
 
 
     def draw(self):
 
         
         self.movement()
-
         camera_x,camera_y =camera(self.x,self.y,screen_size,self.map_size) #sets the camera
 
+
         self.draw_map(camera_x,camera_y)
+        self.speed_meter()
 
         
         
@@ -318,7 +376,7 @@ class Car():
         car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
 
-        screen.blit(self.rotated_image, (self.car_pos))
+        screen.blit(self.rotated_image, (self.car_pos)) #car position
 
 
 
@@ -355,3 +413,8 @@ while running:
 
 pg.quit()
 sys.exit()
+
+
+
+# TO DO 
+ #-- make the acceleration be less as the speed increases

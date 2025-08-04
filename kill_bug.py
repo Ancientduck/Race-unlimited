@@ -24,6 +24,9 @@ class Debug():
             'red':{
                 'color':(255,0,0)
             },
+            'green':{
+                'color':(0,255,0)
+            }
         }
     def control(self,screen_size):
         self.screen_width,self.screen_height = screen_size
