@@ -9,7 +9,7 @@ garage = {
         'height': base_height,
         'image': "cars/aston_martin.png",
         'acceleration': 1400,
-        'max_speed': 1600,
+        'max_speed': 6400,
         'brake': 16,
         'handling': 0.6
     },
@@ -19,7 +19,7 @@ garage = {
         'height': base_height,
         'image': "cars/glinton.png",
         'acceleration': 1500,
-        'max_speed': 1700,
+        'max_speed': 6800,
         'brake': 18,
         'handling': 0.6
     },
@@ -29,7 +29,7 @@ garage = {
         'height': base_height,
         'image': "cars/esquire.png",
         'acceleration': 1700,
-        'max_speed': 1400,
+        'max_speed': 5600,
         'brake': 20,
         'handling': 0.6
     },
@@ -38,8 +38,8 @@ garage = {
         'width': base_width,
         'height': base_height,
         'image': "cars/lamborghini.png",
-        'acceleration': 2300,
-        'max_speed': 2000,
+        'acceleration': 2600,
+        'max_speed': 8000,
         'brake': 30,
         'handling': 0.7
     },
@@ -49,7 +49,7 @@ garage = {
     'height': base_height,
     'image': "cars/pony.png",
     'acceleration': 1800,
-    'max_speed': 3000,
+    'max_speed': 9000,
     'brake': 30,
     'handling': 0.7
     },
