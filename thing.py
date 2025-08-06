@@ -462,7 +462,7 @@ class Car_sounds:
         self.gear_4_limit = self.max_speed/1.5
 
         self.gear = 0
-
+        self.old_gear = None
     def car_sound_sys(self):
         self.speed_convert_modifer = 0.03
         self.speed = int(player_car.velocity.length() * self.speed_convert_modifer)
@@ -555,18 +555,23 @@ class Car_sounds:
     def gears(self):
 
         buffer_zone_num = 3
-
+        
         buffer_zone_1 = self.gear_1_limit + buffer_zone_num
         buffer_zone_2 = self.gear_2_limit + buffer_zone_num
         buffer_zone_3 = self.gear_3_limit + buffer_zone_num
         buffer_zone_4 = self.gear_4_limit + buffer_zone_num
 
+        debug.debug_on_screen(f'the current gear:{self.gear}','green')
+        debug.debug_on_screen(f' the previous gear:{self.old_gear}','red')
 
-        if self.speed > self.gear_1_limit and self.speed < buffer_zone_1  and not self.sounds['gear_1']['played']:      ## the shift_1
+
+        if self.speed > self.gear_1_limit and self.speed < buffer_zone_1  and not self.sounds['gear_1']['played'] and self.old_gear != 1:      ## the shift_1
             
-            self.gear = 1
+            #self.gear = 1
+            #self.old_gear = self.gear
             self.set_gear(1)
-       
+
+
             self.channel_accel.stop()
             self.channel_accel_loop.stop()
 
@@ -580,10 +585,12 @@ class Car_sounds:
             self.sounds['acceleration_1']['played'] = False
             self.loops['loop_2']['played'] = False
 
-        if self.speed > self.gear_2_limit  and self.speed < buffer_zone_2 and not self.sounds['gear_2']['played']:         # THE SHIFT_2
-            self.gear = 2
+
+        if self.speed > self.gear_2_limit  and self.speed < buffer_zone_2 and not self.sounds['gear_2']['played'] and self.old_gear != 2:         # THE SHIFT_2
+            #self.gear = 2
+            #self.old_gear = self.gear
             self.set_gear(2)
-            
+
             self.channel_accel.stop()
             self.channel_accel_loop.stop()
             self.channel_gear.play(self.sounds['gear_2']['sound'])
@@ -592,9 +599,10 @@ class Car_sounds:
             self.sounds['acceleration_2']['played'] = False
             self.loops['loop_3']['played'] = False
         
+        
 
-        if self.speed > self.gear_3_limit and self.speed < buffer_zone_3 and not self.sounds['gear_3']['played']:         # THE SHIFT_3
-            self.gear = 3
+        if self.speed > self.gear_3_limit and self.speed < buffer_zone_3 and not self.sounds['gear_3']['played'] and self.old_gear != 3:         # THE SHIFT_3
+            #self.gear = 3
             self.set_gear(3)
             self.channel_accel.stop()
             self.channel_accel_loop.stop()   
@@ -605,10 +613,10 @@ class Car_sounds:
             self.sounds['acceleration_3']['played'] = False
             self.loops['loop_4']['played'] = False
             
-        if self.speed > self.gear_4_limit and self.speed < buffer_zone_4 and not self.sounds['gear_4']['played']:         # THE SHIFT_4  -- last one
+        if self.speed > self.gear_4_limit and self.speed < buffer_zone_4 and not self.sounds['gear_4']['played'] and self.old_gear != 4:         # THE SHIFT_4  -- last one
            
             
-            self.gear = 4
+            #self.gear = 4
             self.set_gear(4)
             self.channel_accel.stop()
             self.channel_accel_loop.stop()
@@ -620,17 +628,6 @@ class Car_sounds:
             #self.sounds['acceleration_4']['played'] = False
 
 
-
-    # def reset_flags(self):
-    #     if self.speed < self.gear_1_limit:
-    #         self.sounds['acceleration_1']['played'] = False
-    #         self.sounds['gear_1']['played'] = False
-    #         self.loops['loop_1']['played'] = False
-            
-    #     if self.speed > self.gear_1_limit and self.speed < self.gear_2_limit:
-    #         self.sounds['acceleration_2']['played'] = False
-    #         self.sounds['gear_2']['played'] = False
-    #         self.loops['loop_2']['played'] = False
 
     def reset_keys(self, *keys):
         for k in keys:
@@ -677,17 +674,27 @@ class Car_sounds:
         if self.gear != gear:
             self.gear = gear
             self.lower_speed()
-        
-
+            self.old_gear = gear
+            
 
     def lower_speed(self):
+        
+        speed_modifer = -10
+        
+        # speed_penalties = { 
+        #     1: (self.gear_1_limit + speed_modifer) / self.speed_convert_modifer,                    #sys type 1
+        #     2: ((self.gear_2_limit + self.gear_1_limit) / 2) / self.speed_convert_modifer, 
+        #     3: ((self.gear_3_limit + self.gear_2_limit) / 2) / self.speed_convert_modifer, 
+        #     4: ((self.gear_4_limit + self.gear_3_limit) / 2) / self.speed_convert_modifer, 
+        # }
 
-        speed_penalties = {
-            1:  (self.gear_1_limit+1)/self.speed_convert_modifer,
-            2:  (self.gear_2_limit+1)/self.speed_convert_modifer,
-            3:  (self.gear_3_limit+1)/self.speed_convert_modifer,
-            4:  (self.gear_4_limit+1)/self.speed_convert_modifer,
+        speed_penalties = { 
+            1: (self.gear_1_limit + speed_modifer) / self.speed_convert_modifer,                #sys type 2
+            2: ((self.gear_1_limit + 4)) / self.speed_convert_modifer, 
+            3: ((self.gear_2_limit + 4)) / self.speed_convert_modifer, 
+            4: ((self.gear_3_limit + 4)) / self.speed_convert_modifer, 
         }
+
 
         car_speed = player_car.velocity.length()
 
@@ -717,7 +724,7 @@ class Car_sounds:
         #     player_car.velocity.scale_to_length(new_speed)
         #     debug.debug_on_screen(f'lowered speed by:{gear_4_change}')
 
-        print(f'speed_loss : {lower_amount}')
+        print(f'speed_change_to : {lower_amount*0.03} from {getattr(self, f"gear_{self.gear}_limit")}')
         
 car_sounds = Car_sounds()
 
@@ -764,5 +771,5 @@ sys.exit()
 #// fix the sound loops
 
 ## the sounds are good now
-# FIX THE FUCKING sound resets
+#// FIX THE FUCKING sound resets
 ## FIX the sounds when it gets decreased from environments
