@@ -456,14 +456,13 @@ class Car_sounds:
         self.gear_3_limit = self.max_speed/2
         self.gear_4_limit = self.max_speed/1.5
 
-    def reset_played_flags(self):
-        # Reset all the 'played' flags to False
-        for sound in self.sounds.values():
-            sound['played'] = False
+
 
     def car_sound_sys(self):
         self.speed = int(player_car.velocity.length() * 0.03)
 
+        self.reset_flags_based_on_speed() 
+        #self.reset_flags() 
         ## ok the logic is this
         # first accel is turned on meaning true
         # if gear is not shifted let is stay true
@@ -482,17 +481,17 @@ class Car_sounds:
 
         debug.debug_on_screen(f'the gear_limites: {self.gear_1_limit,self.gear_2_limit,self.gear_3_limit,self.gear_4_limit}','red')
 
-        if self.speed < self.gear_1_limit and not self.sounds['acceleration_1']['played']:     ## the acceleration
+        if self.speed < self.gear_1_limit and not self.sounds['acceleration_1']['played']:     ## the acceleration_1
             self.channel_accel.play(self.sounds['acceleration_1']['sound'])
             self.sounds['acceleration_1']['played'] = True
             self.sounds['acceleration_2']['played'] = False
 
-        if self.speed < self.gear_1_limit and self.sounds['acceleration_1']['played']:          ## the loop
+        if self.speed < self.gear_1_limit and self.sounds['acceleration_1']['played']:          ## the loop_2
             if not self.loops['loop_1']['played'] and not self.channel_accel.get_busy():
                 self.channel_accel_loop.play(self.loops['loop_1']['sound'],loops=-1)
                 self.loops['loop_1']['played'] = True
 
-        if self.speed > self.gear_1_limit and self.speed < buffer_zone_1  and not self.sounds['gear_1']['played']:              ## the shift
+        if self.speed > self.gear_1_limit and self.speed < buffer_zone_1  and not self.sounds['gear_1']['played']:      ## the shift_1
             self.channel_accel.stop()
             self.channel_accel_loop.stop()
 
@@ -586,11 +585,63 @@ class Car_sounds:
             self.sounds['gear_4']['played'] = False
 
 
-
-
+       
+        
+        
         debug.debug_on_screen(f'The speed: {self.speed}')
 
 
+    # def reset_flags(self):
+    #     if self.speed < self.gear_1_limit:
+    #         self.sounds['acceleration_1']['played'] = False
+    #         self.sounds['gear_1']['played'] = False
+    #         self.loops['loop_1']['played'] = False
+            
+    #     if self.speed > self.gear_1_limit and self.speed < self.gear_2_limit:
+    #         self.sounds['acceleration_2']['played'] = False
+    #         self.sounds['gear_2']['played'] = False
+    #         self.loops['loop_2']['played'] = False
+
+    def reset_keys(self, *keys):
+        for k in keys:
+            if k in self.sounds:
+                self.sounds[k]['played'] = False
+            if k in self.loops:
+                self.loops[k]['played'] = False
+
+
+    def reset_flags_based_on_speed(self):
+        s = self.speed
+
+        if s < self.gear_1_limit:
+            self.reset_keys(
+                'acceleration_2', 'acceleration_3', 'acceleration_4',
+                'loop_2', 'loop_3', 'loop_4',
+                'gear_1', 'gear_2', 'gear_3', 'gear_4',
+                'car_moving_loop'
+            )
+
+        elif s < self.gear_2_limit:
+            self.reset_keys(
+                'acceleration_3', 'acceleration_4',
+                'loop_3', 'loop_4',
+                'gear_2', 'gear_3', 'gear_4',
+                'car_moving_loop'
+            )
+
+        elif s < self.gear_3_limit:
+            self.reset_keys(
+                'acceleration_4',
+                'loop_4',
+                'gear_3', 'gear_4',
+                'car_moving_loop'
+            )
+
+        elif s < self.gear_4_limit:
+            self.reset_keys(
+                'gear_4',
+                'car_moving_loop'
+            )
 
 car_sounds = Car_sounds()
 
@@ -638,3 +689,4 @@ sys.exit()
 
 ## the sounds are good now
 # FIX THE FUCKING sound resets
+## FIX the sounds when it gets decreased from environments
