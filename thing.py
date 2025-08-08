@@ -10,6 +10,9 @@ from pprint import pprint
 from factory import garage,maps
 from kill_bug import debug
 from camera import camera
+from get_offset_for_mask import get_offset
+from collision_detection import collision_check,get_around_points
+
 pg.init()
 pg.mixer.init()
 #debug
@@ -22,7 +25,7 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
-selected_car = 'pony' 
+selected_car = 'BMW' 
 the_font = 'Dragrace.ttf'
 #glinton
 #lamborghini
@@ -76,6 +79,7 @@ class Car():
         self.image = image
         self.image = pg.image.load(self.image).convert_alpha()
         self.image = pg.transform.scale(self.image, (self.width,self.height))
+        self.car_mask = pg.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
        
@@ -135,7 +139,7 @@ class Car():
         
         # self.car_continous_moving_loop = False
         # self.car_continous_moving_loop_sound = pg.mixer.sound('sounds/car_moving_loop.mp3')
-
+        
         
 
 
@@ -154,13 +158,7 @@ class Car():
         return X[0],Y[0]
 
     def is_on(self):
-        road_color = (195, 195, 195)
-        white = (255,255,255)
-        black = (0,0,0)
-        red = (255,0,0)
         self.pixel_color = self.road.get_at((int(self.x),int(self.y)))
-        self.spawn_color_check = self.road_image.get_at((int(self.x),int(self.y)))
-        
         return self.pixel_color[:3]
 
         
@@ -321,25 +319,37 @@ class Car():
         self.rotated_image = pg.transform.rotate(self.image,(self.angle))
         self.rect = self.rotated_image.get_rect(center=(self.x, self.y))
 
-    
+        self.car_image = self.rotated_image
+        self.car_mask = pg.mask.from_surface(self.car_image)   # the masks
+        self.car_rect = self.rect
+
         self.rect.center = (self.x, self.y)
         self.rect.clamp_ip(self.map.get_rect())
         self.x, self.y = self.rect.center
         
-        self.pixel_color = self.is_on()
+        #self.pixel_color = self.is_on()
         
-        white = (255,255,255)
-        if self.pixel_color != white:
-            debug.debug_on_screen(f'no on road','red')
-            self.speed = self.velocity.length()
-            if self.speed > self.max_speed/3:
-                off_road_fiction = self.velocity.normalize()*-self.friction*20
-                self.velocity += off_road_fiction *dt
+        # white = (255,255,255)
+        # if self.pixel_color != white:
+        #     debug.debug_on_screen(f'no on road','red')
+        #     self.speed = self.velocity.length()
+        #     if self.speed > self.max_speed/3:
+        #         off_road_fiction = self.velocity.normalize()*-self.friction*20
+        #         self.velocity += off_road_fiction *dt
 
+        black = (0,0,0)
+        is_on_target = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,black,)
+        if is_on_target:
+            collision_results = collision_check.push(self.x,self.y,self.velocity.x,self.velocity.y,forward,dt)
+            self.x = collision_results[0]
+            self.y = collision_results[1]
+            self.velocity.x = collision_results[2]
+            self.velocity.y = collision_results[3]
         
-
-        #debug.debug_on_screen(self.acceleration)
+        #debug.debug_on_screen(collision_check.detect_by_color(self.car_rect,self.map,self.x,self.y,black))
         self.speed = self.velocity.length()
+        
+        
 
         #thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
 
@@ -361,8 +371,6 @@ class Car():
        #debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
         # Stop if speed gets too low
 
-        #self.speed_meter()
-       # car_sounds.car_sound_sys()
        
     def speed_meter(self):
         car_speed = int(self.speed*0.03)
@@ -390,31 +398,43 @@ class Car():
     def draw_map(self,camera_x,camera_y):
         screen.blit(self.map, (-camera_x,-camera_y))
 
-
+        
+    
 
     def draw(self):
 
         
-        self.movement()
         camera_x,camera_y =camera(self.x,self.y,screen_size,self.map_size) #sets the camera
 
 
         self.draw_map(camera_x,camera_y)
+
+        self.movement()
         self.speed_meter()
 
-        
         
         car_screen_x = self.x - camera_x
         car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
 
+        make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
+
         screen.blit(self.rotated_image, (self.car_pos)) #car position
 
+        
+def make_circles(rect,camera_x,camera_y,angle,original_image):
 
+    points = get_around_points(rect,angle,original_image)
+
+    for point in points:
+        # Create a new tuple with the adjusted values
+        adjusted_point = (point[0] + camera_x - rect.centerx, point[1] + camera_y - rect.centery)
+        
+        # Draw the circle using the adjusted point
+        pg.draw.circle(screen, (255, 0, 0), adjusted_point, 7)
 
 
 player_car = Car(**garage[selected_car])
-
 
 
 class Car_sounds:
@@ -480,7 +500,7 @@ class Car_sounds:
 
         
 
-        debug.debug_on_screen(f'the gear_limites: {self.gear_1_limit,self.gear_2_limit,self.gear_3_limit,self.gear_4_limit}','red')
+        #debug.debug_on_screen(f'the gear_limites: {self.gear_1_limit,self.gear_2_limit,self.gear_3_limit,self.gear_4_limit}','red')
 
         self.gears()
         
@@ -561,8 +581,8 @@ class Car_sounds:
         buffer_zone_3 = self.gear_3_limit + buffer_zone_num
         buffer_zone_4 = self.gear_4_limit + buffer_zone_num
 
-        debug.debug_on_screen(f'the current gear:{self.gear}','green')
-        debug.debug_on_screen(f' the previous gear:{self.old_gear}','red')
+        #debug.debug_on_screen(f'the current gear:{self.gear}','green')
+       # debug.debug_on_screen(f' the previous gear:{self.old_gear}','red')
 
 
         if self.speed > self.gear_1_limit and self.speed < buffer_zone_1  and not self.sounds['gear_1']['played'] and self.old_gear != 1:      ## the shift_1
@@ -707,22 +727,7 @@ class Car_sounds:
             player_car.velocity.scale_to_length(new_speed)
                                                                         ## the speed loss is too marginal, but if it gets too much than the gear shifts two times, maybe flag system would be good, but too much work
 
-        # if self.gear == 1:
-        #     new_speed = car_speed - gear_1_change
-        #     player_car.velocity.scale_to_length(new_speed)
-        #     debug.debug_on_screen(f'lowered speed by:{gear_1_change}')
-        # elif self.gear == 2:
-        #     new_speed = car_speed - gear_2_change
-        #     player_car.velocity.scale_to_length(new_speed)
-        #     debug.debug_on_screen(f'lowered speed by:{gear_2_change}')
-        # elif self.gear == 3:
-        #     new_speed = car_speed - gear_3_change
-        #     player_car.velocity.scale_to_length(new_speed)
-        #     debug.debug_on_screen(f'lowered speed by:{gear_3_change}')
-        # elif self.gear == 4:
-        #     new_speed = car_speed - gear_4_change
-        #     player_car.velocity.scale_to_length(new_speed)
-        #     debug.debug_on_screen(f'lowered speed by:{gear_4_change}')
+
 
         print(f'speed_change_to : {lower_amount*0.03} from {getattr(self, f"gear_{self.gear}_limit")}')
         
@@ -772,4 +777,7 @@ sys.exit()
 
 ## the sounds are good now
 #// FIX THE FUCKING sound resets
-## FIX the sounds when it gets decreased from environments
+## //FIX the sounds when it gets decreased from environments
+# FUCK THE SySTEM
+  #//THE COLLISION DETECTION IS NOT WORKING CORRECTLY
+  #??THE COLLISION SYSTEM PUSH IS FUCKED - fix it
