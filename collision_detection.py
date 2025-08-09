@@ -1,5 +1,6 @@
 import math
-
+import pygame as pg
+from kill_bug import debug
 
 def get_offset(player_x,player_y,target_x,target_y):
     offset = ((player_x - target_x),(player_y-target_y))
@@ -45,7 +46,7 @@ def get_around_points(rect,angle,original_image):
         world_y = center_y + rotated_y
         
         rotated_points.append((world_x, world_y))
-        print(relative_x,relative_y)
+       # print(relative_x,relative_y)
 
     return rotated_points
 
@@ -86,16 +87,23 @@ class Collision_detect:
         return False
         
 
-    def push(self,x,y,velocity_x,velocity_y,vector,dt):
+    def push(self,x,y,rect,velocity_x,velocity_y,dt,power):
        
-        push_strength = 300
-        direction = vector.normalize()
+        push_strength = power
+        car_center = pg.math.Vector2(rect.center)
+        collision_vec = car_center - pg.math.Vector2(car_center)
+
+        if collision_vec.length() == 0:
+            collision_vec = pg.math.Vector2(0, -1)
+        direction = collision_vec.normalize()
          
-        x -= direction.x*push_strength*dt
-        y -= direction.x*push_strength*dt
+        x += direction.x*push_strength*dt
+        y += direction.y*push_strength*dt
+
+
         velocity_x *= 0
         velocity_y *= 0
-
+        debug.debug_on_screen(f'{x},{y}','green')
         return x,y,velocity_x,velocity_y
-    
+
 collision_check = Collision_detect()

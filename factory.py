@@ -1,5 +1,5 @@
 
-base_width,base_height = 120,60
+base_width,base_height = 160,60
 
 
 garage = {

@@ -141,7 +141,7 @@ class Car():
         # self.car_continous_moving_loop_sound = pg.mixer.sound('sounds/car_moving_loop.mp3')
         
         
-
+        
 
     def find_Spawn(self): #//trying the new thing. getting numpy error axis aerror 2 is out of bounds
          # Load image
@@ -193,6 +193,18 @@ class Car():
                 speed_loss += speed_loss_amount
                 self.speed -= (self.acceleration+speed_loss) *dt
 
+
+    def screen_collision_check(self,vector,car_rect):
+        screen_rect = screen.get_rect()
+
+        if not screen.get_rect().contains(car_rect):
+            # Car is touching or outside the screen edges
+            collision_results = collision_check.push(self.x, self.y, self.velocity.x, self.velocity.y, vector, dt, 500)
+            self.x = collision_results[0]
+            self.y = collision_results[1]
+            self.velocity.x = collision_results[2]
+            self.velocity.y = collision_results[3]
+            
     def movement(self):
         
         rotation_speed = self.rotation_speed
@@ -208,7 +220,7 @@ class Car():
 
         forward = pg.Vector2(dx,dy)
         
-            
+       
         
         if self.keys[pg.K_SPACE]:
             if self.velocity.length() > 0:
@@ -248,8 +260,9 @@ class Car():
             
 
         elif self.keys[pg.K_s]:
-            way = self.velocity.dot(forward)
-            if way > -500:
+            speed_by_direction = self.velocity.dot(forward)
+            reverse_speed = -self.max_speed/4
+            if speed_by_direction > reverse_speed:
                 self.velocity -= self.brake*forward
             if self.speed > self.max_speed/2:
                 self.rotate_car(rotation_speed * 1.4)
@@ -328,7 +341,8 @@ class Car():
         self.x, self.y = self.rect.center
         
         #self.pixel_color = self.is_on()
-        
+        #self.screen_collision_check(forward,self.car_rect)
+
         # white = (255,255,255)
         # if self.pixel_color != white:
         #     debug.debug_on_screen(f'no on road','red')
@@ -337,20 +351,13 @@ class Car():
         #         off_road_fiction = self.velocity.normalize()*-self.friction*20
         #         self.velocity += off_road_fiction *dt
 
-        black = (0,0,0)
-        is_on_target = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,black,)
-        if is_on_target:
-            collision_results = collision_check.push(self.x,self.y,self.velocity.x,self.velocity.y,forward,dt)
-            self.x = collision_results[0]
-            self.y = collision_results[1]
-            self.velocity.x = collision_results[2]
-            self.velocity.y = collision_results[3]
+   
         
-        #debug.debug_on_screen(collision_check.detect_by_color(self.car_rect,self.map,self.x,self.y,black))
+        self.logics()
         self.speed = self.velocity.length()
         
         
-
+        
         #thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
 
         # debug.debug_on_screen(thing)
@@ -371,7 +378,28 @@ class Car():
        #debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
         # Stop if speed gets too low
 
-       
+    def check_outofbound_collision(self):
+        black = (0,0,0)
+        is_on_target = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,black)
+        if is_on_target:
+            power = 500
+            collision_results = collision_check.push(self.x,self.y,self.car_rect,self.velocity.x,self.velocity.y,dt,power)
+            self.x, self.y, self.velocity.x, self.velocity.y = collision_results
+
+    def check_not_road(self):
+        green = (0,255,0)
+        is_on_target = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,green)
+        if is_on_target:
+            debug.debug_on_screen(f'no on road','red')
+            self.speed = self.velocity.length()
+            if self.speed > self.max_speed/3:
+                off_road_fiction = self.velocity.normalize()*-self.friction*20
+                self.velocity += off_road_fiction *dt
+
+    def logics(self):
+        self.check_outofbound_collision()  # collision_check
+        self.check_not_road()
+
     def speed_meter(self):
         car_speed = int(self.speed*0.03)
         
@@ -398,7 +426,7 @@ class Car():
     def draw_map(self,camera_x,camera_y):
         screen.blit(self.map, (-camera_x,-camera_y))
 
-        
+    
     
 
     def draw(self):
@@ -417,7 +445,7 @@ class Car():
         car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
 
-        make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
+        #make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
 
         screen.blit(self.rotated_image, (self.car_pos)) #car position
 
@@ -729,7 +757,7 @@ class Car_sounds:
 
 
 
-        print(f'speed_change_to : {lower_amount*0.03} from {getattr(self, f"gear_{self.gear}_limit")}')
+       # print(f'speed_change_to : {lower_amount*0.03} from {getattr(self, f"gear_{self.gear}_limit")}')
         
 car_sounds = Car_sounds()
 
@@ -771,6 +799,7 @@ sys.exit()
    # the car moving but not accelerating sound will play when w is not pressed
    # the gear will change based on the SPEED 
    # it should work IT MUST WORK :|
+   # Update: IT WORKS
 ## TO DO
 # FUCK THIS
 #// fix the sound loops
@@ -780,4 +809,5 @@ sys.exit()
 ## //FIX the sounds when it gets decreased from environments
 # FUCK THE SySTEM
   #//THE COLLISION DETECTION IS NOT WORKING CORRECTLY
-  #??THE COLLISION SYSTEM PUSH IS FUCKED - fix it
+  #//THE COLLISION SYSTEM PUSH IS FUCKED - fix it
+  #??2 THE COLLISION SYSTEM IS STILL FUCKED, but less, fix it 
