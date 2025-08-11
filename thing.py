@@ -25,7 +25,7 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
-selected_car = 'BMW' 
+selected_car = 'lamborghini' 
 the_font = 'Dragrace.ttf'
 #glinton
 #lamborghini
@@ -127,28 +127,14 @@ class Car():
 
         speed_meter_Size = 200,200
         self.speed_meter_image = pg.image.load('speed_meter.png')
-        self.speed_meter_image = pg.transform.scale(self.speed_meter_image,(speed_meter_Size))      
-
-        # #car sounds
-        # self.channel = pg.mixer.find_channel()
-
-        # self.car_accelerating = False
-        # self.car_accelerating_sound = pg.mixer.Sound('sounds/car_sound_accelerating.mp3')
-
-        # self.car_move_without_accelerating = False
-        
-        # self.car_continous_moving_loop = False
-        # self.car_continous_moving_loop_sound = pg.mixer.sound('sounds/car_moving_loop.mp3')
-        
-        
-        
+        self.speed_meter_image = pg.transform.scale(self.speed_meter_image,(speed_meter_Size))             
 
     def find_Spawn(self): #//trying the new thing. getting numpy error axis aerror 2 is out of bounds
          # Load image
         image = maps[selected_map]['road']
         im = cv2.imread(image)
 
-        # Define the blue colour we want to find - remember OpenCV uses BGR ordering
+        # Define the RED colour we want to find - remember OpenCV uses BGR ordering
         red = [0,0,255]
 
 
@@ -199,11 +185,12 @@ class Car():
 
         if not screen.get_rect().contains(car_rect):
             # Car is touching or outside the screen edges
-            collision_results = collision_check.push(self.x, self.y, self.velocity.x, self.velocity.y, vector, dt, 500)
+            collision_results = collision_check.push(self.x, self.y,self.angle,self.velocity.x, self.velocity.y, vector, dt, 500)
             self.x = collision_results[0]
             self.y = collision_results[1]
-            self.velocity.x = collision_results[2]
-            self.velocity.y = collision_results[3]
+            self.velocity.x = collision_results[3]
+            self.velocity.y = collision_results[4]
+
             
     def movement(self):
         
@@ -211,7 +198,7 @@ class Car():
         #new_speed = self.max_speed
         self.keys = pg.key.get_pressed()
 
-        #self.new_drift = 0
+        #self.new_drift = 0      
 
         rad = math.radians(self.angle)
     
@@ -380,17 +367,18 @@ class Car():
 
     def check_outofbound_collision(self):
         black = (0,0,0)
-        is_on_target = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,black)
+        is_on_target,points = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,black)
         if is_on_target:
             power = 500
-            collision_results = collision_check.push(self.x,self.y,self.car_rect,self.velocity.x,self.velocity.y,dt,power)
-            self.x, self.y, self.velocity.x, self.velocity.y = collision_results
+            collision_points = points
+            collision_results = collision_check.push(self.x,self.y,self.angle,self.car_rect,self.velocity.x,self.velocity.y,dt,power,collision_points)
+            self.x, self.y,self.angle, self.velocity.x, self.velocity.y = collision_results
 
     def check_not_road(self):
         green = (0,255,0)
-        is_on_target = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,green)
+        is_on_target,points = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,green)
         if is_on_target:
-            debug.debug_on_screen(f'no on road','red')
+            debug.debug_on_screen(f'not on road','red')
             self.speed = self.velocity.length()
             if self.speed > self.max_speed/3:
                 off_road_fiction = self.velocity.normalize()*-self.friction*20
@@ -398,7 +386,7 @@ class Car():
 
     def logics(self):
         self.check_outofbound_collision()  # collision_check
-        self.check_not_road()
+        self.check_not_road()             # still not finished
 
     def speed_meter(self):
         car_speed = int(self.speed*0.03)
@@ -810,4 +798,10 @@ sys.exit()
 # FUCK THE SySTEM
   #//THE COLLISION DETECTION IS NOT WORKING CORRECTLY
   #//THE COLLISION SYSTEM PUSH IS FUCKED - fix it
-  #??2 THE COLLISION SYSTEM IS STILL FUCKED, but less, fix it 
+  #///??2 THE COLLISION SYSTEM IS STILL FUCKED, but less, fix it 
+  #collision system is now fixed, 
+  #collision system improvement,
+    #change the angle of the car when it hits the roads edge
+    #using vector to decide the angle,
+    #the angle should be based on the collision point
+      #example: front or back point means t the rotation force = 360 or 0 meaning no angle change

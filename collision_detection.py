@@ -81,29 +81,31 @@ class Collision_detect:
                 0 <= check_y < the_map.get_height()):
                 pixel_color = the_map.get_at((check_x, check_y))[:3]
                 if pixel_color == target_color:
-                    return True  # found target color
+                    points = check_x,check_y
+                    return True,points  # found target color
 
         # No point matched
-        return False
+        return False,None
         
 
-    def push(self,x,y,rect,velocity_x,velocity_y,dt,power):
-       
-        push_strength = power
+    def push(self,x, y,angle,rect, velocity_x, velocity_y, dt, power,collision_points):
+
         car_center = pg.math.Vector2(rect.center)
-        collision_vec = car_center - pg.math.Vector2(car_center)
+        collision_pos = pg.math.Vector2(collision_points)
+    
+        current_velo = pg.math.Vector2(velocity_x, velocity_y)
+        collision_direction = car_center - collision_pos
 
-        if collision_vec.length() == 0:
-            collision_vec = pg.math.Vector2(0, -1)
-        direction = collision_vec.normalize()
-         
-        x += direction.x*push_strength*dt
-        y += direction.y*push_strength*dt
+        if collision_direction.length() > 0:
+            collision_direction = collision_direction.normalize()
 
-
-        velocity_x *= 0
-        velocity_y *= 0
-        debug.debug_on_screen(f'{x},{y}','green')
-        return x,y,velocity_x,velocity_y
+            
+            x += collision_direction.x *power*dt  
+            y += collision_direction.y *power*dt
+        
+        velocity_x *= 0.3  
+        velocity_y *= 0.3
+       # angle -= 1
+        return x, y,angle, velocity_x, velocity_y
 
 collision_check = Collision_detect()
