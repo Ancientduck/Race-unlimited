@@ -2,6 +2,7 @@ import math
 import pygame as pg
 from kill_bug import debug
 
+
 def get_offset(player_x,player_y,target_x,target_y):
     offset = ((player_x - target_x),(player_y-target_y))
     return offset
@@ -19,11 +20,11 @@ def get_around_points(rect,angle,original_image):
         (center_x + half_width, center_y - half_height),  # Top-right  
         (center_x + half_width, center_y + half_height),  # Bottom-right
         (center_x - half_width, center_y + half_height),  # Bottom-left
-        (center_x, center_y),                             # Center
-        (center_x, center_y - half_height),               # Front-center (top middle)
-        (center_x, center_y + half_height),               # Rear-center (bottom middle)
-        (center_x - half_width, center_y),                # Left-center
-        (center_x + half_width, center_y),                # Right-center
+       # (center_x, center_y),                             # Center
+       # (center_x, center_y - half_height),               # (top middle)
+       # (center_x, center_y + half_height),               # (bottom middle)
+       # (center_x - half_width, center_y),                # Left-center
+       # (center_x + half_width, center_y),                # Right-center
     ]
 
     rad = math.radians(-angle)
@@ -88,24 +89,42 @@ class Collision_detect:
         return False,None
         
 
-    def push(self,x, y,angle,rect, velocity_x, velocity_y, dt, power,collision_points):
+    def push(self,x,y,angle,rect,velocity, dt, power,collision_points):
 
         car_center = pg.math.Vector2(rect.center)
         collision_pos = pg.math.Vector2(collision_points)
     
-        current_velo = pg.math.Vector2(velocity_x, velocity_y)
+        vel = pg.math.Vector2(velocity)
+
         collision_direction = car_center - collision_pos
 
         if collision_direction.length() > 0:
             collision_direction = collision_direction.normalize()
 
             
-            x += collision_direction.x *power*dt  
-            y += collision_direction.y *power*dt
+        x += collision_direction.x *power*dt  
+        y += collision_direction.y *power*dt
+            
+        #velocity_x *= 0.3
+        #velocity_y *= 0.3
+
+       # reflect_velo = vel.reflect(collision_pos)
+      #  angle = math.degrees(math.atan2(reflect_velo.y,reflect_velo.x))
+
+        v_in_wall = vel.project(collision_direction)
         
-        velocity_x *= 0.3  
-        velocity_y *= 0.3
-       # angle -= 1
-        return x, y,angle, velocity_x, velocity_y
+        vel  -= v_in_wall/9
+
+
+
+        #if vel.dot(front_dir) > 0:
+        angle_should_be = -math.degrees(math.atan2(vel.y,vel.x))
+        angle_diff = (angle_should_be - angle + 180)%360 - 180
+
+        debug.debug_on_screen(angle_should_be)
+        max_turn_speed = 10  # tweak per frame
+        #angle += max(-max_turn_speed, min(max_turn_speed, angle_diff))
+        angle += angle_diff * 0.4
+        return x,y,angle, vel
 
 collision_check = Collision_detect()

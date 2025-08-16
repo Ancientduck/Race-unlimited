@@ -25,7 +25,7 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
-selected_car = 'lamborghini' 
+selected_car = 'BMW' 
 the_font = 'Dragrace.ttf'
 #glinton
 #lamborghini
@@ -259,50 +259,12 @@ class Car():
         
 
         else:
-            #friction
-            self.speed = self.velocity.length()
             
-
-            #====flags for sounds====#
-    
-
-            car_sounds.sounds['car_moving_loop']['played'] = False
-
-
-           # for sounds in car_sounds.sounds:
-            #    car_sounds.sounds[sounds]['played'] = False
-
-
-            for sounds in car_sounds.loops:
-                car_sounds.loops[sounds]['played'] = False            
+            self.not_accelerating(rotation_speed)
             
-            for gear in ['gear_1', 'gear_2', 'gear_3', 'gear_4']:
-                car_sounds.sounds[gear]['played'] = False
-            
-            
-            for sounds in car_sounds.sounds:
-                car_sounds.sounds[sounds]['played'] = False
-
-            car_sounds.channel_accel.stop()
-            car_sounds.channel_accel_loop.stop()
-            car_sounds.channel_gear.stop()
-            car_sounds.channel_loop.stop()
-
-            if self.speed > 0:
-                friction_force = self.velocity.normalize() * -self.friction
-                self.velocity += friction_force*dt
-                minumum_speed_for_friction = 15
-                if self.speed < minumum_speed_for_friction:
-                    self.velocity = pg.Vector2(0,0)      
-
-           #if W is not pressed  
-            if self.speed > 0:
-                self.rotate_car(rotation_speed * 2)
-            if self.speed < 0:
-                self.speed += self.friction
-                self.rotate_car(rotation_speed)
-       
         
+
+
         if self.acceleration > 0:
                 acceleration_modifer = (self.speed/self.max_speed)*self.original_acceleration
 
@@ -365,14 +327,56 @@ class Car():
        #debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
         # Stop if speed gets too low
 
+
+    def not_accelerating(self,rotation_speed):
+        self.speed = self.velocity.length()
+        
+        #====flags for sounds====#
+
+        car_sounds.sounds['car_moving_loop']['played'] = False
+
+
+        # for sounds in car_sounds.sounds:
+        #    car_sounds.sounds[sounds]['played'] = False
+
+
+        for sounds in car_sounds.loops:
+            car_sounds.loops[sounds]['played'] = False            
+        
+        for gear in ['gear_1', 'gear_2', 'gear_3', 'gear_4']:
+            car_sounds.sounds[gear]['played'] = False
+        
+        
+        for sounds in car_sounds.sounds:
+            car_sounds.sounds[sounds]['played'] = False
+
+        car_sounds.channel_accel.stop()
+        car_sounds.channel_accel_loop.stop()
+        car_sounds.channel_gear.stop()
+        car_sounds.channel_loop.stop()
+
+        if self.speed > 0:
+            friction_force = self.velocity.normalize() * -self.friction
+            self.velocity += friction_force*dt
+            minumum_speed_for_friction = 15
+            if self.speed < minumum_speed_for_friction:
+                self.velocity = pg.Vector2(0,0)      
+
+        #if W is not pressed  
+        if self.speed > 0:
+            self.rotate_car(rotation_speed * 2)
+        if self.speed < 0:
+            self.speed += self.friction
+            self.rotate_car(rotation_speed)
+
     def check_outofbound_collision(self):
         black = (0,0,0)
         is_on_target,points = collision_check.detect_by_color(self.car_rect,self.image,self.road,self.angle,black)
         if is_on_target:
             power = 500
             collision_points = points
-            collision_results = collision_check.push(self.x,self.y,self.angle,self.car_rect,self.velocity.x,self.velocity.y,dt,power,collision_points)
-            self.x, self.y,self.angle, self.velocity.x, self.velocity.y = collision_results
+            collision_results = collision_check.push(self.x,self.y,self.angle,self.car_rect,self.velocity,dt,power,collision_points)
+            self.x,self.y,self.angle,self.velocity = collision_results
 
     def check_not_road(self):
         green = (0,255,0)
@@ -433,7 +437,7 @@ class Car():
         car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
 
-        #make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
+       # make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
 
         screen.blit(self.rotated_image, (self.car_pos)) #car position
 
@@ -460,7 +464,7 @@ class Car_sounds:
         self.channel_gear = pg.mixer.Channel(1)
         self.channel_loop = pg.mixer.Channel(2)
 
-        self.channel_accel_loop = pg.mixer.Channel(4)
+        self.channel_accel_loop = pg.mixer.Channel(3)
 
         self.channel_accel.set_volume(0.3)
         self.channel_accel_loop.set_volume(0.3)
@@ -771,7 +775,7 @@ while running:
     debug.show_bug(screen,screen_size)
 
     pg.display.flip()
-    clock.tick(100)
+
 
 
 pg.quit()
@@ -805,3 +809,4 @@ sys.exit()
     #using vector to decide the angle,
     #the angle should be based on the collision point
       #example: front or back point means t the rotation force = 360 or 0 meaning no angle change
+    ##? close to finishing the direction change based on collision 
