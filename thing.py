@@ -289,43 +289,31 @@ class Car():
         self.rect.clamp_ip(self.map.get_rect())
         self.x, self.y = self.rect.center
         
-        #self.pixel_color = self.is_on()
-        #self.screen_collision_check(forward,self.car_rect)
-
-        # white = (255,255,255)
-        # if self.pixel_color != white:
-        #     debug.debug_on_screen(f'no on road','red')
-        #     self.speed = self.velocity.length()
-        #     if self.speed > self.max_speed/3:
-        #         off_road_fiction = self.velocity.normalize()*-self.friction*20
-        #         self.velocity += off_road_fiction *dt
-
-   
-        
+    
         self.logics()
         self.speed = self.velocity.length()
         
         
         
-        #thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
+        # thing = f"current_speed :{int(self.speed)} ,  current_angle:{int(self.angle)}"
 
         # debug.debug_on_screen(thing)
-        #debug.debug_on_screen(self.pixel_color,'black')
+
 
         # debug.debug_on_screen(f'the way: {self.velocity.dot(forward)}','green')
-        #debug.debug_on_screen(f'rotation_power:{rotation_speed}','blue')
+        # debug.debug_on_screen(f'rotation_power:{rotation_speed}','blue')
 
         # thing1 = f'the vector velocity: {self.velocity}'
-        #thing2 = f'SPEED: {self.speed}'
+        # thing2 = f'SPEED: {self.speed}'
     
         # debug.debug_on_screen(thing1,'blue')
-        #debug.debug_on_screen(thing2,'black')
+        # debug.debug_on_screen(thing2,'black')
 
         # self.new_drift = self.drift_factor  # default value
-       # debug.debug_on_screen(self.new_drift,'blue')
+        # debug.debug_on_screen(self.new_drift,'blue')
 
-       #debug.debug_on_screen(f' speed stopping power: {friction_force} ' )
-        # Stop if speed gets too low
+
+
 
 
     def not_accelerating(self,rotation_speed):
@@ -391,7 +379,7 @@ class Car():
     def logics(self):
         self.check_outofbound_collision()  # collision_check
         self.check_not_road()             # still not finished
-
+        car_sounds.gears()
     def speed_meter(self):
         car_speed = int(self.speed*0.03)
         
@@ -522,7 +510,7 @@ class Car_sounds:
 
         #debug.debug_on_screen(f'the gear_limites: {self.gear_1_limit,self.gear_2_limit,self.gear_3_limit,self.gear_4_limit}','red')
 
-        self.gears()
+       # self.gears()
         
         if self.speed < self.gear_1_limit and not self.sounds['acceleration_1']['played']:     ## the acceleration_1
             
@@ -614,21 +602,18 @@ class Car_sounds:
 
             self.channel_accel.stop()
             self.channel_accel_loop.stop()
-
               # makes the first acceleration played false
-            self.sounds['acceleration_1']['played'] = False
-
             self.channel_gear.play(self.sounds['gear_1']['sound'])
+
+            self.sounds['acceleration_1']['played'] = False
             self.sounds['gear_1']['played'] = True
-            
             self.sounds['gear_2']['played'] = False
             self.sounds['acceleration_1']['played'] = False
             self.loops['loop_2']['played'] = False
 
 
-        if self.speed > self.gear_2_limit  and self.speed < buffer_zone_2 and not self.sounds['gear_2']['played'] and self.old_gear != 2:         # THE SHIFT_2
-            #self.gear = 2
-            #self.old_gear = self.gear
+        elif self.speed > self.gear_2_limit  and self.speed < buffer_zone_2 and not self.sounds['gear_2']['played'] and self.old_gear != 2:         # THE SHIFT_2
+
             self.set_gear(2)
 
             self.channel_accel.stop()
@@ -641,19 +626,19 @@ class Car_sounds:
         
         
 
-        if self.speed > self.gear_3_limit and self.speed < buffer_zone_3 and not self.sounds['gear_3']['played'] and self.old_gear != 3:         # THE SHIFT_3
+        elif self.speed > self.gear_3_limit and self.speed < buffer_zone_3 and not self.sounds['gear_3']['played'] and self.old_gear != 3:         # THE SHIFT_3
             #self.gear = 3
             self.set_gear(3)
             self.channel_accel.stop()
             self.channel_accel_loop.stop()   
             self.channel_gear.play(self.sounds['gear_3']['sound'])
-            self.sounds['gear_3']['played'] = True
 
+            self.sounds['gear_3']['played'] = True
             self.sounds['gear_2']['played'] = False
             self.sounds['acceleration_3']['played'] = False
             self.loops['loop_4']['played'] = False
             
-        if self.speed > self.gear_4_limit and self.speed < buffer_zone_4 and not self.sounds['gear_4']['played'] and self.old_gear != 4:         # THE SHIFT_4  -- last one
+        elif self.speed > self.gear_4_limit and self.speed < buffer_zone_4 and not self.sounds['gear_4']['played'] and self.old_gear != 4:         # THE SHIFT_4  -- last one
            
             
             #self.gear = 4
@@ -662,8 +647,8 @@ class Car_sounds:
             self.channel_accel_loop.stop()
 
             self.channel_gear.play(self.sounds['gear_4']['sound'])
-            self.sounds['gear_4']['played'] = True
 
+            self.sounds['gear_4']['played'] = True
             self.sounds['gear_3']['played'] = False
             #self.sounds['acceleration_4']['played'] = False
 
@@ -745,7 +730,7 @@ class Car_sounds:
             #new_speed = car_speed - lower_amount
             new_speed =   lower_amount
             player_car.velocity.scale_to_length(new_speed)
-                                                                        ## the speed loss is too marginal, but if it gets too much than the gear shifts two times, maybe flag system would be good, but too much work
+           ## the speed loss is too marginal, but if it gets too much than the gear shifts two times, maybe flag system would be good, but too much work
 
 
 
@@ -809,4 +794,5 @@ sys.exit()
     #using vector to decide the angle,
     #the angle should be based on the collision point
       #example: front or back point means t the rotation force = 360 or 0 meaning no angle change
-    ##? close to finishing the direction change based on collision 
+    ##?// close to finishing the direction change based on collision 
+    #? better than before but not the best, work on it later

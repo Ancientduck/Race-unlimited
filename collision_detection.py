@@ -35,8 +35,8 @@ def get_around_points(rect,angle,original_image):
     
     for point_x, point_y in points:
         # Convert to relative coordinates (offset from center)
-        relative_x = point_x - center_x #// Make the cars center treated as the 0,0 
-        relative_y = point_y - center_y  ##?? MAKE THE CAR"S CENTER BECOME 0,0
+        relative_x = point_x - center_x #// treat car center as the 0,0 
+        relative_y = point_y - center_y  ##?? MAKE THE CAR'S CENTER 0,0
         
         # Apply rotation matrix to the relative coordinates
         rotated_x = relative_x * cos_angle - relative_y * sin_angle
@@ -94,10 +94,9 @@ class Collision_detect:
         car_center = pg.math.Vector2(rect.center)
         collision_pos = pg.math.Vector2(collision_points)
     
-        vel = pg.math.Vector2(velocity)
-
+        vel = velocity #vector
         collision_direction = car_center - collision_pos
-
+        direction = vel.normalize()
         if collision_direction.length() > 0:
             collision_direction = collision_direction.normalize()
 
@@ -105,26 +104,28 @@ class Collision_detect:
         x += collision_direction.x *power*dt  
         y += collision_direction.y *power*dt
             
-        #velocity_x *= 0.3
-        #velocity_y *= 0.3
-
-       # reflect_velo = vel.reflect(collision_pos)
-      #  angle = math.degrees(math.atan2(reflect_velo.y,reflect_velo.x))
 
         v_in_wall = vel.project(collision_direction)
         
-        vel  -= v_in_wall/9
+        vel  -= v_in_wall*0.1
 
 
-
-        #if vel.dot(front_dir) > 0:
         angle_should_be = -math.degrees(math.atan2(vel.y,vel.x))
         angle_diff = (angle_should_be - angle + 180)%360 - 180
 
-        debug.debug_on_screen(angle_should_be)
-        max_turn_speed = 10  # tweak per frame
-        #angle += max(-max_turn_speed, min(max_turn_speed, angle_diff))
-        angle += angle_diff * 0.4
+#        if direction.length() < 0:
+        if angle_diff > 5:
+            angle_diff = 5
+        elif angle_diff < -5:
+            angle_diff = -5
+
+        if angle_diff > -3 and angle_diff < 3:
+            angle_diff = 0
+       # debug.debug_on_screen(angle_diff)
+       # print(f'angle_should be : {angle_should_be}, angle_diff : {angle_diff}')
+
+        angle += angle_diff * 0.6
+        
         return x,y,angle, vel
 
 collision_check = Collision_detect()

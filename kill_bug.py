@@ -15,22 +15,44 @@ class Debug():
         self.somethings = [] 
         self.chosen_color = 0
         self.colors = {
-            'black':{
-                'color': (0,0,0)
-            },
-            'blue':{
-                'color': (0,0,255)
-            },
-            'red':{
-                'color':(255,0,0)
-            },
-            'green':{
-                'color':(0,255,0)
-            },
-            'yellow':{
-                'color':(255,255,0)
-            },
-        }
+                    'black': {'color': (0, 0, 0)},
+
+                    'white': {'color': (255, 255, 255)},
+
+                    'blue': {'color': (0, 0, 255)},
+
+                    'red': {'color': (255, 0, 0)},
+
+                    'green': {'color': (0, 255, 0)},
+
+                    'yellow': {'color': (255, 255, 0)},
+
+                    'cyan': {'color': (0, 255, 255)},
+
+                    'magenta': {'color': (255, 0, 255)},
+
+                    'gray': {'color': (128, 128, 128)},
+
+                    'orange': {'color': (255, 165, 0)},
+
+                    'purple': {'color': (128, 0, 128)},
+
+                    'pink': {'color': (255, 192, 203)},
+
+                    'brown': {'color': (165, 42, 42)},
+
+                    'lime': {'color': (0, 255, 0)},
+
+                    'navy': {'color': (0, 0, 128)},
+
+                    'teal': {'color': (0, 128, 128)},
+
+                    'maroon': {'color': (128, 0, 0)},
+
+                    'olive': {'color': (128, 128, 0)},
+                    
+                    'silver': {'color': (192, 192, 192)},
+                    }
     def control(self,screen_size):
         self.screen_width,self.screen_height = screen_size
         # if not self.set:
