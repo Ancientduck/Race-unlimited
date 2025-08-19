@@ -96,10 +96,11 @@ class Collision_detect:
     
         vel = velocity #vector
         collision_direction = car_center - collision_pos
-        direction = vel.normalize()
+
+
         if collision_direction.length() > 0:
             collision_direction = collision_direction.normalize()
-
+        
             
         x += collision_direction.x *power*dt  
         y += collision_direction.y *power*dt
@@ -107,25 +108,27 @@ class Collision_detect:
 
         v_in_wall = vel.project(collision_direction)
         
-        vel  -= v_in_wall*0.1
+
+        vel  -= v_in_wall
 
 
         angle_should_be = -math.degrees(math.atan2(vel.y,vel.x))
+
         angle_diff = (angle_should_be - angle + 180)%360 - 180
 
-#        if direction.length() < 0:
+
         if angle_diff > 5:
             angle_diff = 5
         elif angle_diff < -5:
             angle_diff = -5
 
-        if angle_diff > -3 and angle_diff < 3:
-            angle_diff = 0
+        #if angle_diff > -3 and angle_diff < 3:
+            #angle_diff = 0
        # debug.debug_on_screen(angle_diff)
        # print(f'angle_should be : {angle_should_be}, angle_diff : {angle_diff}')
 
-        angle += angle_diff * 0.6
-        
+        angle += angle_diff #* 0.6
+       # print(direction_speed)
         return x,y,angle, vel
 
 collision_check = Collision_detect()

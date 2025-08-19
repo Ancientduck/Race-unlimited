@@ -49,7 +49,6 @@ bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
 
 
 def check_zoom():
-        # Load actual map
     raw_map = pg.image.load(maps[selected_map]['map'])
     map_width = raw_map.get_width()
     map_height = raw_map.get_height()
@@ -248,6 +247,8 @@ class Car():
 
         elif self.keys[pg.K_s]:
             speed_by_direction = self.velocity.dot(forward)
+            
+            car_sounds.brake(speed_by_direction)
             reverse_speed = -self.max_speed/4
             if speed_by_direction > reverse_speed:
                 self.velocity -= self.brake*forward
@@ -323,7 +324,7 @@ class Car():
 
         car_sounds.sounds['car_moving_loop']['played'] = False
 
-
+        
         # for sounds in car_sounds.sounds:
         #    car_sounds.sounds[sounds]['played'] = False
 
@@ -338,6 +339,9 @@ class Car():
         for sounds in car_sounds.sounds:
             car_sounds.sounds[sounds]['played'] = False
 
+        car_sounds.sounds['brake_loop']['played'] = False
+
+        car_sounds.brake_loop.stop()
         car_sounds.channel_accel.stop()
         car_sounds.channel_accel_loop.stop()
         car_sounds.channel_gear.stop()
@@ -451,8 +455,8 @@ class Car_sounds:
         self.channel_accel = pg.mixer.Channel(0)
         self.channel_gear = pg.mixer.Channel(1)
         self.channel_loop = pg.mixer.Channel(2)
-
         self.channel_accel_loop = pg.mixer.Channel(3)
+        self.brake_loop = pg.mixer.Channel(4)
 
         self.channel_accel.set_volume(0.3)
         self.channel_accel_loop.set_volume(0.3)
@@ -468,7 +472,8 @@ class Car_sounds:
             'gear_2': {'sound': pg.mixer.Sound('sounds/gear_2.ogg'), 'played': False},
             'gear_3': {'sound': pg.mixer.Sound('sounds/gear_3.ogg'), 'played': False},
             'gear_4': {'sound': pg.mixer.Sound('sounds/gear_4.ogg'), 'played': False},
-            'car_moving_loop': {'sound': pg.mixer.Sound('sounds/car_moving_loop.ogg'), 'played': False}
+            'car_moving_loop': {'sound': pg.mixer.Sound('sounds/car_moving_loop.ogg'), 'played': False},
+            'brake_loop': {'sound': pg.mixer.Sound('sounds/brake_loop.ogg'),'played': False}
         }
 
         self.loops = {
@@ -496,20 +501,7 @@ class Car_sounds:
         self.speed = int(player_car.velocity.length() * self.speed_convert_modifer)
 
         self.reset_flags_based_on_speed() 
-        #self.reset_flags() 
-        ## ok the logic is this
-        # first accel is turned on meaning true
-        # if gear is not shifted let is stay true
-        # when that gear is shifted make that accel false
-        # and stop that accel and loop 
-
-
-        # Dynamic gear limits based on acceleration
-
         
-
-        #debug.debug_on_screen(f'the gear_limites: {self.gear_1_limit,self.gear_2_limit,self.gear_3_limit,self.gear_4_limit}','red')
-
        # self.gears()
         
         if self.speed < self.gear_1_limit and not self.sounds['acceleration_1']['played']:     ## the acceleration_1
@@ -619,6 +611,7 @@ class Car_sounds:
             self.channel_accel.stop()
             self.channel_accel_loop.stop()
             self.channel_gear.play(self.sounds['gear_2']['sound'])
+
             self.sounds['gear_2']['played'] = True
             self.sounds['gear_1']['played'] = False
             self.sounds['acceleration_2']['played'] = False
@@ -647,13 +640,21 @@ class Car_sounds:
             self.channel_accel_loop.stop()
 
             self.channel_gear.play(self.sounds['gear_4']['sound'])
-
             self.sounds['gear_4']['played'] = True
             self.sounds['gear_3']['played'] = False
             #self.sounds['acceleration_4']['played'] = False
 
 
-
+    def brake(self,speed_by_direction):
+        if not self.sounds['brake_loop']['played'] and speed_by_direction > 0:
+            debug.debug_on_screen(speed_by_direction)
+            
+            self.channel_accel.stop()
+            self.channel_accel_loop.stop()
+            self.brake_loop.play(self.sounds['brake_loop']['sound'])
+            self.sounds['brake_loop']['played'] = True
+        elif  speed_by_direction < 0:
+            self.brake_loop.stop()
     def reset_keys(self, *keys):
         for k in keys:
             if k in self.sounds:
