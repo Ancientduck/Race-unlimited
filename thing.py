@@ -25,6 +25,10 @@ screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
 
+
+
+speed_convert_modifer = 0.03
+
 selected_car = 'BMW' 
 the_font = 'Dragrace.ttf'
 #glinton
@@ -168,15 +172,18 @@ class Car():
 
         if self.keys[pg.K_a]:
             self.angle += rotation_speed
+
             if self.speed > speed_loss_start_speed:  
                 speed_loss += speed_loss_amount
                 self.speed -= (self.acceleration+speed_loss) *dt
 
         if self.keys[pg.K_d]:
             self.angle -= rotation_speed
+     
             if self.speed > speed_loss_start_speed:
                 speed_loss += speed_loss_amount
                 self.speed -= (self.acceleration+speed_loss) *dt
+        self.angle %= 360
 
 
     def screen_collision_check(self,vector,car_rect):
@@ -209,6 +216,9 @@ class Car():
        
         
         if self.keys[pg.K_SPACE]:
+            if self.speed*speed_convert_modifer > 1:
+                print(self.speed*speed_convert_modifer)
+                car_sounds.hand_brake()
             if self.velocity.length() > 0:
                 friction_force = self.velocity.normalize() * -dt * self.acceleration*1.05
                 self.velocity += friction_force
@@ -226,6 +236,8 @@ class Car():
         else:
             if self.new_drift < self.drift_factor:
                 self.new_drift += 0.02
+            car_sounds.channel_hand_brake.stop()
+            car_sounds.hand_brake_sound['hand_brake']['played'] = False
                   # recover grip gradually
                 
            
@@ -313,7 +325,7 @@ class Car():
         # self.new_drift = self.drift_factor  # default value
         # debug.debug_on_screen(self.new_drift,'blue')
 
-
+        debug.debug_on_screen(self.speed)
 
 
 
@@ -341,7 +353,7 @@ class Car():
 
         car_sounds.sounds['brake_loop']['played'] = False
 
-        car_sounds.brake_loop.stop()
+        car_sounds.channel_brake_loop.stop()
         car_sounds.channel_accel.stop()
         car_sounds.channel_accel_loop.stop()
         car_sounds.channel_gear.stop()
@@ -456,11 +468,13 @@ class Car_sounds:
         self.channel_gear = pg.mixer.Channel(1)
         self.channel_loop = pg.mixer.Channel(2)
         self.channel_accel_loop = pg.mixer.Channel(3)
-        self.brake_loop = pg.mixer.Channel(4)
+        self.channel_brake_loop = pg.mixer.Channel(4)
+        self.channel_hand_brake = pg.mixer.Channel(5)
 
         self.channel_accel.set_volume(0.3)
         self.channel_accel_loop.set_volume(0.3)
         self.channel_loop.set_volume(0.3)
+        self.channel_hand_brake.set_volume(0.3)
    
         # Dictionary for storing sounds and their "played" states
         self.sounds = {
@@ -473,9 +487,10 @@ class Car_sounds:
             'gear_3': {'sound': pg.mixer.Sound('sounds/gear_3.ogg'), 'played': False},
             'gear_4': {'sound': pg.mixer.Sound('sounds/gear_4.ogg'), 'played': False},
             'car_moving_loop': {'sound': pg.mixer.Sound('sounds/car_moving_loop.ogg'), 'played': False},
-            'brake_loop': {'sound': pg.mixer.Sound('sounds/brake_loop.ogg'),'played': False}
+            'brake_loop': {'sound': pg.mixer.Sound('sounds/brake_loop.ogg'),'played': False},
         }
 
+        self.hand_brake_sound = {'hand_brake': {'sound': pg.mixer.Sound('sounds/hand_brake.wav'),'played':False}}
         self.loops = {
             'loop_1': {'sound':pg.mixer.Sound('sounds/car_acceleration_1_loop.ogg'), 'played': False},
             'loop_2': {'sound':pg.mixer.Sound('sounds/car_acceleration_2_loop.ogg'), 'played': False},
@@ -569,7 +584,10 @@ class Car_sounds:
             self.sounds['car_moving_loop']['played'] = True
             self.sounds['gear_4']['played'] = False
 
-        
+    def hand_brake(self):
+        if not self.hand_brake_sound['hand_brake']['played']:
+            self.channel_hand_brake.play(self.hand_brake_sound['hand_brake']['sound'])
+            self.hand_brake_sound['hand_brake']['played'] = True
             
        
     def gears(self):
@@ -651,10 +669,10 @@ class Car_sounds:
             
             self.channel_accel.stop()
             self.channel_accel_loop.stop()
-            self.brake_loop.play(self.sounds['brake_loop']['sound'])
+            self.channel_brake_loop.play(self.sounds['brake_loop']['sound'])
             self.sounds['brake_loop']['played'] = True
         elif  speed_by_direction < 0:
-            self.brake_loop.stop()
+            self.channel_brake_loop.stop()
     def reset_keys(self, *keys):
         for k in keys:
             if k in self.sounds:
@@ -734,7 +752,7 @@ class Car_sounds:
            ## the speed loss is too marginal, but if it gets too much than the gear shifts two times, maybe flag system would be good, but too much work
 
 
-
+    
        # print(f'speed_change_to : {lower_amount*0.03} from {getattr(self, f"gear_{self.gear}_limit")}')
         
 car_sounds = Car_sounds()

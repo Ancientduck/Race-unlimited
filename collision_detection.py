@@ -105,7 +105,7 @@ class Collision_detect:
         x += collision_direction.x *power*dt  
         y += collision_direction.y *power*dt
             
-
+        quard = 0
         v_in_wall = vel.project(collision_direction)
         
 
@@ -122,12 +122,47 @@ class Collision_detect:
         elif angle_diff < -5:
             angle_diff = -5
 
-        #if angle_diff > -3 and angle_diff < 3:
-            #angle_diff = 0
-       # debug.debug_on_screen(angle_diff)
-       # print(f'angle_should be : {angle_should_be}, angle_diff : {angle_diff}')
+        
 
         angle += angle_diff #* 0.6
+
+        # if 90 > angle > 0:
+        #     quard = 1
+        # elif 180> angle > 90:
+        #     quard = 2
+        # elif 270 > angle > 180:
+        #     quard = 3 
+        # elif 360 < angle < 270:
+        #     quard = 4
+
+
+
+
+
+        # if 90 - angle < 0:
+        #     angle += 1
+        # elif 90 - angle > 0:
+        #     angle -= 1
+
+        # elif 180 - angle < 0:
+        #     angle += 1
+        #     debug.debug_on_screen('less than 180')
+        # elif 180 - angle > 0:
+        #     angle -= 1
+        #     debug.debug_on_screen('greater then 180')
+
+        # elif 270 - angle < 0:
+        #     angle += 1
+        # elif 270 - angle > 0:
+        #     angle -= 1
+
+        # elif  360 - angle < 0: #or 360-angle < 0:
+        #     debug.debug_on_screen('less than 0')
+        #     angle += 1
+        # elif 360 - angle > 0: #or 360-angle > 0:
+        #     debug.debug_on_screen('less then 0')
+        #     angle -= 1
+
        # print(direction_speed)
         return x,y,angle, vel
 
