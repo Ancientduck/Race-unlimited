@@ -24,7 +24,7 @@ screen_size = screen_width,screen_height
 screen = pg.display.set_mode((screen_width,screen_height))
 pg.display.set_caption('racing')
 
-
+camera_x,camera_y = 0,0
 
 
 speed_convert_modifer = 0.03
@@ -132,6 +132,8 @@ class Car():
         self.speed_meter_image = pg.image.load('speed_meter.png')
         self.speed_meter_image = pg.transform.scale(self.speed_meter_image,(speed_meter_Size))             
 
+
+        
     def find_Spawn(self): #//trying the new thing. getting numpy error axis aerror 2 is out of bounds
          # Load image
         image = maps[selected_map]['road']
@@ -162,7 +164,30 @@ class Car():
         v = forward + lateral * grip
 
         return v
-        
+    
+    def show_tire_mark(self,angle : float):
+        image = self.tire_mark_image
+        car_image = self.image
+
+        rotated_mark = pg.transform.rotate(image,angle)
+
+        half_width = car_image.get_width()//2
+        half_height = car_image.get_height()//2
+
+        offsets = [
+            pg.Vector2(-half_width,-half_height),  #rightwheel
+            pg.Vector2(-half_width,half_height)    #leftwheel
+        ]
+
+        car_center = pg.Vector2(self.car_pos.center)
+        for offset in offsets:
+            rotated_offset = offset.rotate(-angle)
+            wheel_pos = rotated_offset + car_center  
+           
+            rect = rotated_mark.get_rect(center=wheel_pos)
+            self.update_tire_marks(rotated_mark,rect)
+
+
     def rotate_car(self,rotation_speed):
         self.keys = pg.key.get_pressed()
         speed_loss_amount = self.acceleration*dt
@@ -219,6 +244,8 @@ class Car():
             if self.speed*speed_convert_modifer > 1:
                 print(self.speed*speed_convert_modifer)
                 car_sounds.hand_brake()
+                tire_marks.tire_mark_on = True
+
             if self.velocity.length() > 0:
                 friction_force = self.velocity.normalize() * -dt * self.acceleration*1.05
                 self.velocity += friction_force
@@ -238,6 +265,7 @@ class Car():
                 self.new_drift += 0.02
             car_sounds.channel_hand_brake.stop()
             car_sounds.hand_brake_sound['hand_brake']['played'] = False
+            tire_marks.tire_mark_on = False
                   # recover grip gradually
                 
            
@@ -325,7 +353,7 @@ class Car():
         # self.new_drift = self.drift_factor  # default value
         # debug.debug_on_screen(self.new_drift,'blue')
 
-        debug.debug_on_screen(self.speed)
+ 
 
 
 
@@ -427,7 +455,7 @@ class Car():
 
     def draw(self):
 
-        
+        global camera_x,camera_y
         camera_x,camera_y =camera(self.x,self.y,screen_size,self.map_size) #sets the camera
 
 
@@ -436,6 +464,7 @@ class Car():
         self.movement()
         self.speed_meter()
 
+        
         
         car_screen_x = self.x - camera_x
         car_screen_y = self.y - camera_y
@@ -459,6 +488,90 @@ def make_circles(rect,camera_x,camera_y,angle,original_image):
 
 
 player_car = Car(**garage[selected_car])
+
+
+class Tire_marks:
+    def __init__(self):
+        self.life = 255
+        self.tire_mark_image = pg.image.load('car_assets/tire_mark.png').convert_alpha()
+        self.tire_mark_width,self.tire_mark_height = 20,10
+        self.tire_mark_image = pg.transform.scale(self.tire_mark_image,(self.tire_mark_width,self.tire_mark_height))
+        self.tire_mark_image.set_alpha(self.life)
+        self.tire_mark_on = False
+        self.tire_marks = []
+        self.last_mark_time = 0
+        self.mark_interval = 0
+
+        self.tire_gride_pos = set()
+    def show_tire_mark(self):
+
+        if not self.tire_mark_on:
+            return
+        self.last_mark_time += dt
+        if self.last_mark_time < self.mark_interval:
+            return
+        self.last_mark_time = 0
+
+        image = self.tire_mark_image
+        car_image = player_car.image
+        angle = player_car.angle
+
+        rotated_mark = pg.transform.rotate(image,angle)
+
+        half_width = car_image.get_width()//2
+        half_height = car_image.get_height()//2
+
+        offsets = [
+            pg.Vector2(-half_width,-half_height),  #rightwheel
+            pg.Vector2(-half_width,half_height)    #leftwheel
+        ]
+
+        car_center = pg.Vector2(player_car.x, player_car.y)
+        for offset in offsets:
+            rotated_offset = offset.rotate(-angle)
+            wheel_pos = rotated_offset + car_center  
+           
+            #rect = rotated_mark.get_rect(center=wheel_pos)
+            grid_pos = int(wheel_pos.x//5),int(wheel_pos.y//5)
+            #self.update_tire_marks(rotated_mark,rect)
+            if grid_pos not in self.tire_gride_pos:
+                self.tire_gride_pos.add(grid_pos)
+                tire_marks_data = {
+                    'image': rotated_mark,
+                    'pos': wheel_pos,
+                    'opacity': 255,
+                    'grid_pos': grid_pos
+                }
+                self.tire_marks.append(tire_marks_data)
+            
+    def update_tire_marks(self):
+
+        if not self.tire_mark_on:
+            debug.debug_on_screen('off','red')
+            for tire_mark in self.tire_marks[:]:
+                tire_mark['opacity'] -= 1
+                
+                if tire_mark['opacity'] <= 0:
+                    self.tire_gride_pos.discard(tire_mark['grid_pos'])
+                    self.tire_marks.remove(tire_mark)
+                    continue
+                tire_mark['image'].set_alpha(tire_mark['opacity'])
+
+        self.make()
+
+          
+    def make(self):
+        camera_offset = pg.Vector2(camera_x,camera_y)
+        debug.debug_on_screen(len(self.tire_marks))
+        for tire_mark in self.tire_marks:
+            screen_pos = tire_mark['pos'] - camera_offset
+            rect = tire_mark['image'].get_rect(center=screen_pos)
+            if not screen.get_rect().contains(rect):
+                self.tire_marks.remove(tire_mark)
+                self.tire_gride_pos.discard(tire_mark['grid_pos'])
+            screen.blit(tire_mark['image'],rect)
+    
+tire_marks = Tire_marks()
 
 
 class Car_sounds:
@@ -758,9 +871,13 @@ class Car_sounds:
 car_sounds = Car_sounds()
 
 def draw_all():
-   # background()
+
     player_car.draw()
-    
+    tire_marks.show_tire_mark()
+
+def update_all():
+    tire_marks.update_tire_marks()
+    pass
 
 running = True
 
@@ -775,7 +892,7 @@ while running:
 
 
     draw_all()
-
+    update_all()
     debug.show_bug(screen,screen_size)
 
     pg.display.flip()
