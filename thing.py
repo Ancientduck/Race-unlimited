@@ -459,7 +459,7 @@ class Car():
         camera_x,camera_y =camera(self.x,self.y,screen_size,self.map_size) #sets the camera
 
 
-        self.draw_map(camera_x,camera_y)
+        
 
         self.movement()
         self.speed_meter()
@@ -543,9 +543,7 @@ class Tire_marks:
                     'grid_pos': grid_pos
                 }
                 self.tire_marks.append(tire_marks_data)
-            
     def update_tire_marks(self):
-
         if not self.tire_mark_on:
             debug.debug_on_screen('off','red')
             for tire_mark in self.tire_marks[:]:
@@ -557,7 +555,7 @@ class Tire_marks:
                     continue
                 tire_mark['image'].set_alpha(tire_mark['opacity'])
 
-        self.make()
+
 
           
     def make(self):
@@ -871,11 +869,12 @@ class Car_sounds:
 car_sounds = Car_sounds()
 
 def draw_all():
-
+    player_car.draw_map(camera_x,camera_y)
+    tire_marks.make()
     player_car.draw()
-    tire_marks.show_tire_mark()
-
+    debug.debug_on_screen(f"FPS: {clock.get_fps():.0f}",'yellow')
 def update_all():
+    tire_marks.show_tire_mark()
     tire_marks.update_tire_marks()
     pass
 
@@ -891,8 +890,8 @@ while running:
 
 
 
-    draw_all()
     update_all()
+    draw_all()
     debug.show_bug(screen,screen_size)
 
     pg.display.flip()
