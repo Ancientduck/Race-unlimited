@@ -930,4 +930,5 @@ sys.exit()
     #the angle should be based on the collision point
       #example: front or back point means t the rotation force = 360 or 0 meaning no angle change
     ##?// close to finishing the direction change based on collision 
-    #? better than before but not the best, work on it later
+    #?/// better than before but not the best, work on it later
+    #? now its MUCHH BETTER

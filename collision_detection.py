@@ -102,10 +102,9 @@ class Collision_detect:
             collision_direction = collision_direction.normalize()
         
             
-        x += collision_direction.x *power*dt  
-        y += collision_direction.y *power*dt
-            
-        quard = 0
+        x += collision_direction.x *power*dt*2  
+        y += collision_direction.y *power*dt*2
+        
         v_in_wall = vel.project(collision_direction)
         
 
@@ -123,7 +122,8 @@ class Collision_detect:
             angle_diff = -5
 
         
-
+        vel += v_in_wall
+        
         angle += angle_diff #* 0.6
 
        # print(direction_speed)
