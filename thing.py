@@ -544,7 +544,7 @@ class Tire_marks:
                 }
                 self.tire_marks.append(tire_marks_data)
     def update_tire_marks(self):
-        if not self.tire_mark_on:
+        if self.tire_mark_on or not self.tire_mark_on:
             debug.debug_on_screen('off','red')
             for tire_mark in self.tire_marks[:]:
                 tire_mark['opacity'] -= 1
@@ -697,7 +697,7 @@ class Car_sounds:
 
     def hand_brake(self):
         if not self.hand_brake_sound['hand_brake']['played']:
-            self.channel_hand_brake.play(self.hand_brake_sound['hand_brake']['sound'])
+            self.channel_hand_brake.play(self.hand_brake_sound['hand_brake']['sound'],loops =- 1)
             self.hand_brake_sound['hand_brake']['played'] = True
             
        

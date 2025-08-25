@@ -126,43 +126,6 @@ class Collision_detect:
 
         angle += angle_diff #* 0.6
 
-        # if 90 > angle > 0:
-        #     quard = 1
-        # elif 180> angle > 90:
-        #     quard = 2
-        # elif 270 > angle > 180:
-        #     quard = 3 
-        # elif 360 < angle < 270:
-        #     quard = 4
-
-
-
-
-
-        # if 90 - angle < 0:
-        #     angle += 1
-        # elif 90 - angle > 0:
-        #     angle -= 1
-
-        # elif 180 - angle < 0:
-        #     angle += 1
-        #     debug.debug_on_screen('less than 180')
-        # elif 180 - angle > 0:
-        #     angle -= 1
-        #     debug.debug_on_screen('greater then 180')
-
-        # elif 270 - angle < 0:
-        #     angle += 1
-        # elif 270 - angle > 0:
-        #     angle -= 1
-
-        # elif  360 - angle < 0: #or 360-angle < 0:
-        #     debug.debug_on_screen('less than 0')
-        #     angle += 1
-        # elif 360 - angle > 0: #or 360-angle > 0:
-        #     debug.debug_on_screen('less then 0')
-        #     angle -= 1
-
        # print(direction_speed)
         return x,y,angle, vel
 
