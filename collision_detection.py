@@ -16,37 +16,28 @@ def get_around_points(rect,angle,original_image):
 
 
     points = [
-        (center_x - half_width, center_y - half_height),  # Top-left
-        (center_x + half_width, center_y - half_height),  # Top-right  
-        (center_x + half_width, center_y + half_height),  # Bottom-right
-        (center_x - half_width, center_y + half_height),  # Bottom-left
-       # (center_x, center_y),                             # Center
-       # (center_x, center_y - half_height),               # (top middle)
-       # (center_x, center_y + half_height),               # (bottom middle)
-       # (center_x - half_width, center_y),                # Left-center
-       # (center_x + half_width, center_y),                # Right-center
+        ( - half_width,  - half_height),  # Top-left
+        ( + half_width,  - half_height),  # Top-right  
+        ( + half_width,  + half_height),  # Bottom-right
+        ( - half_width,  + half_height),  # Bottom-left
+       # (0, 0),                             # Center
+       # (0,   - half_height),               # (top middle)
+       # (0,   + half_height),               # (bottom middle)
+       # (0,  - half_width, ),                # Left-center
+       # (0 , + half_width),                # Right-center
     ]
 
-    rad = math.radians(-angle)
-    cos_angle = math.cos(rad)
-    sin_angle = math.sin(rad)
-    
     rotated_points = []
     
+
     for point_x, point_y in points:
-        # Convert to relative coordinates (offset from center)
-        relative_x = point_x - center_x #// treat car center as the 0,0 
-        relative_y = point_y - center_y  ##?? MAKE THE CAR'S CENTER 0,0
-        
-        # Apply rotation matrix to the relative coordinates
-        rotated_x = relative_x * cos_angle - relative_y * sin_angle
-        rotated_y = relative_x * sin_angle + relative_y * cos_angle
-        
-        # Translate back to world position
-        world_x = center_x + rotated_x
-        world_y = center_y + rotated_y
-        
-        rotated_points.append((world_x, world_y))
+        points_vector = pg.Vector2(point_x,point_y)
+        center_vector = pg.Vector2(center_x,center_y)
+        rotated_points_vector = points_vector.rotate(-angle) + center_vector   ##  formula is 
+                                                                               ##  rotated_x = x * cos(-angle) - y * sin(-angle)
+                                                                               ##  rotated_y = x * sin(-angle) + y * cos(-angle)
+
+        rotated_points.append((rotated_points_vector.x, rotated_points_vector.y))
        # print(relative_x,relative_y)
 
     return rotated_points
@@ -105,6 +96,8 @@ class Collision_detect:
         x += collision_direction.x *power*dt*2  
         y += collision_direction.y *power*dt*2
         
+        
+
         v_in_wall = vel.project(collision_direction)
         
 

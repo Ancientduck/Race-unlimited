@@ -470,7 +470,7 @@ class Car():
         car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
 
-       # make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
+        make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
 
         screen.blit(self.rotated_image, (self.car_pos)) #car position
 
@@ -531,9 +531,9 @@ class Tire_marks:
             rotated_offset = offset.rotate(-angle)
             wheel_pos = rotated_offset + car_center  
            
-            #rect = rotated_mark.get_rect(center=wheel_pos)
+
             grid_pos = int(wheel_pos.x//5),int(wheel_pos.y//5)
-            #self.update_tire_marks(rotated_mark,rect)
+
             if grid_pos not in self.tire_gride_pos:
                 self.tire_gride_pos.add(grid_pos)
                 tire_marks_data = {
