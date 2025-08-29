@@ -102,5 +102,10 @@ maps = {
         'road': 'maps/high_way/high_way_road.png',
     
     },
+    'new_loop':{
+        'map': 'maps/new_loop/new_loop.png',
+        'road': 'maps/new_loop/new_loop_road.png',
+    
+    },
 
 }

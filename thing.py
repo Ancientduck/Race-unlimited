@@ -38,13 +38,14 @@ the_font = 'Dragrace.ttf'
 #pony
 #BMW
 
-selected_map = 'high_way'
+selected_map = 'new_loop'
 #test
 #loop
 #river
 #city #not good
 #village
 #high_way 
+#new_loop
 
 bg_image = pg.image.load(maps[selected_map]['map']).convert_alpha()
 bg_image = pg.transform.scale(bg_image, (screen_width,screen_height))
@@ -86,8 +87,8 @@ class Car():
         self.rect = self.image.get_rect()
 
        
-
         self.zoom = check_zoom()
+
         
         self.original_acceleration = acceleration
         self.acceleration =  acceleration
@@ -109,15 +110,13 @@ class Car():
         
         self.map = pg.image.load(maps[selected_map]['map']).convert_alpha()
         self.map = pg.transform.scale(self.map, (int(self.map.get_width()*self.zoom), int(self.map.get_height()*self.zoom)))
-        
         self.map_size = self.map.get_width(),self.map.get_height()
 
 
         self.x,self.y = self.find_Spawn()
         self.x *= self.zoom
         self.y *= self.zoom
-       # print(self.map_size)
-       # self.x,self.y = 0,0
+
         self.camera_x = self.x - screen_width//2
         self.camera_y = self.y - screen_height//2
 
@@ -238,11 +237,12 @@ class Car():
 
         forward = pg.Vector2(dx,dy)
         
-       
+       # is_on_color = self.is_on()
+        #debug.debug_on_screen(f'is on: {is_on_color}', 'blue')
         
         if self.keys[pg.K_SPACE]:
             if self.speed*speed_convert_modifer > 1:
-                print(self.speed*speed_convert_modifer)
+                #print(self.speed*speed_convert_modifer)
                 car_sounds.hand_brake()
                 tire_marks.tire_mark_on = True
 
@@ -364,10 +364,6 @@ class Car():
 
         car_sounds.sounds['car_moving_loop']['played'] = False
 
-        
-        # for sounds in car_sounds.sounds:
-        #    car_sounds.sounds[sounds]['played'] = False
-
 
         for sounds in car_sounds.loops:
             car_sounds.loops[sounds]['played'] = False            
@@ -446,31 +442,21 @@ class Car():
         screen.blit(image,(rect.x,rect.y))
         screen.blit(speed, speed_num_pos)
 
-        
-    def draw_map(self,camera_x,camera_y):
-        screen.blit(self.map, (-camera_x,-camera_y))
-
-    
-    
-
     def draw(self):
 
         global camera_x,camera_y
         camera_x,camera_y =camera(self.x,self.y,screen_size,self.map_size) #sets the camera
-
-
         
 
         self.movement()
         self.speed_meter()
 
-        
-        
+    
         car_screen_x = self.x - camera_x
         car_screen_y = self.y - camera_y
         self.car_pos = self.rotated_image.get_rect(center=(car_screen_x,car_screen_y))
 
-        make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
+       # make_circles(self.car_rect,car_screen_x,car_screen_y,self.angle,self.image)
 
         screen.blit(self.rotated_image, (self.car_pos)) #car position
 
@@ -488,6 +474,10 @@ def make_circles(rect,camera_x,camera_y,angle,original_image):
 
 
 player_car = Car(**garage[selected_car])
+
+
+
+
 
 
 class Tire_marks:
@@ -560,7 +550,7 @@ class Tire_marks:
           
     def make(self):
         camera_offset = pg.Vector2(camera_x,camera_y)
-        debug.debug_on_screen(len(self.tire_marks))
+      #  debug.debug_on_screen(len(self.tire_marks))
         for tire_mark in self.tire_marks:
             screen_pos = tire_mark['pos'] - camera_offset
             rect = tire_mark['image'].get_rect(center=screen_pos)
@@ -868,16 +858,93 @@ class Car_sounds:
         
 car_sounds = Car_sounds()
 
+
+zoom = check_zoom()
+the_map = pg.image.load(maps[selected_map]['map']).convert_alpha()
+the_map = pg.transform.scale(the_map, (int(the_map.get_width()*zoom), int(the_map.get_height()*zoom)))
+def draw_map(camera_x,camera_y):
+        screen.blit(the_map, (-camera_x,-camera_y))
+
+class Check_points:
+    def __init__(self):
+        self.colors_to_check = {
+            'color_1': {
+                'color': (50,0,0),
+                'check': False
+            },
+            'color_2': {
+                'color': (100,0,0),
+                'check': False
+            },
+            'color_3': {
+                'color': (150,0,0),
+                'check': False
+            },
+            'color_4': {
+                'color': (200,0,0),
+                'check': False
+            }
+        }
+        self.image = player_car.image
+        self.road = player_car.road
+
+    def is_on(self):
+        self.x = player_car.x
+        self.y = player_car.y
+        self.pixel_color = self.road.get_at((int(self.x),int(self.y)))
+        return self.pixel_color[:3]
+
+    def check_colors(self):
+        self.angle = player_car.angle
+        self.car_rect = player_car.car_rect
+        
+        color = self.is_on()
+        
+        if self.colors_to_check['color_1']['color'] == color:
+            self.colors_to_check['color_1']['check'] = True
+
+        elif self.colors_to_check['color_2']['color'] == color:
+            self.colors_to_check['color_2']['check'] = True
+
+        elif self.colors_to_check['color_3']['color'] == color:
+            self.colors_to_check['color_3']['check'] = True
+
+        elif self.colors_to_check['color_4']['color'] == color:
+            self.colors_to_check['color_4']['check'] = True
+
+
+        for keys in self.colors_to_check:
+            debug.debug_on_screen(f'check:{self.colors_to_check[keys]['check']}', 'blue')
+
+        debug.debug_on_screen(f'on_this_color: {color}', 'yellow')
+
+
+    def conclusion(self):
+        self.check_colors()
+  
+
+        for value in self.colors_to_check:
+            if self.colors_to_check[value]['check']:
+              print('all_checked')
+            
+
+
+
+check_points = Check_points()
+
 def draw_all():
-    player_car.draw_map(camera_x,camera_y)
+    draw_map(camera_x,camera_y)
     tire_marks.make()
     player_car.draw()
-    debug.debug_on_screen(f"FPS: {clock.get_fps():.0f}",'yellow')
+   # debug.debug_on_screen(f"FPS: {clock.get_fps():.0f}",'yellow')
+
 def update_all():
     tire_marks.show_tire_mark()
     tire_marks.update_tire_marks()
     pass
 
+def world_logics():
+    check_points.conclusion()
 running = True
 
 while running:
@@ -892,6 +959,7 @@ while running:
 
     update_all()
     draw_all()
+    world_logics()
     debug.show_bug(screen,screen_size)
 
     pg.display.flip()
