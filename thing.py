@@ -899,22 +899,14 @@ class Check_points:
         self.car_rect = player_car.car_rect
         
         color = self.is_on()
-        
-        if self.colors_to_check['color_1']['color'] == color:
-            self.colors_to_check['color_1']['check'] = True
-
-        elif self.colors_to_check['color_2']['color'] == color:
-            self.colors_to_check['color_2']['check'] = True
-
-        elif self.colors_to_check['color_3']['color'] == color:
-            self.colors_to_check['color_3']['check'] = True
-
-        elif self.colors_to_check['color_4']['color'] == color:
-            self.colors_to_check['color_4']['check'] = True
 
 
-        for keys in self.colors_to_check:
-            debug.debug_on_screen(f'check:{self.colors_to_check[keys]['check']}', 'blue')
+        for data in self.colors_to_check.values():
+            if data['color'] == color:
+                data['check'] = True
+
+        for data in self.colors_to_check.values():
+            debug.debug_on_screen(f'check:{data['check']}', 'blue')
 
         debug.debug_on_screen(f'on_this_color: {color}', 'yellow')
 
