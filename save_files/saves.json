@@ -1,0 +1,31 @@
+{
+    "car_state": {
+        "aston_martin": true,
+        "glinton": true,
+        "esquire": true,
+        "lamborghini": false,
+        "pony": false,
+        "premer": true,
+        "thrill": false,
+        "mustang": true,
+        "mclaren": true,
+        "neon blue": true,
+        "BMW": true,
+        "aston martin": false
+    },
+    "map_states": {
+        "raceway": true,
+        "desert": true,
+        "phool": true,
+        "elemental": true,
+        "blood_run": false,
+        "space": false,
+        "test": true,
+        "maze": false,
+        "bangladesh": true,
+        "multiend": true
+    },
+    "the_car": "aston_martin",
+    "the_map": "test",
+    "balance": 0
+}
