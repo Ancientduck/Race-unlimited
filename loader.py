@@ -26,9 +26,9 @@ dataloader = DataLoader()
 
 
 
-def run_menu(screen,menu):
+def run_menu(screen,menu,cheatcode):
     global car_list,map_list
-
+    
     selected_car_number = car_list.index(dataloader.get_car())
     selected_map_number = map_list.index(dataloader.get_map())
 
@@ -55,6 +55,9 @@ def run_menu(screen,menu):
         menu.show_map(screen,events)
         menu.showing_money(screen)
         menu.show_buy_btn(screen,events)
+
+        cheatcode.check_for_cheat(events)
+
         if menu.game_on:
 
             

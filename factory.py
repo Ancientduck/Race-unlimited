@@ -153,8 +153,13 @@ def get_map_data(name,extension= 'png',time=15):
 
 
 maps = {
+    "freeroam":{
+        **get_map_data('freeroam',time=1000),
+        'prize': 0,
+    },
+
     'raceway': {
-        **get_map_data('raceway'),
+        **get_map_data('raceway',time=20),
         'prize': 3000
         
     },
@@ -187,10 +192,6 @@ maps = {
     'bangladesh':{
         **get_map_data('bangladesh'),
         'prize':50000,
-    },
-    "test":{
-        **get_map_data('test',time=1000),
-        'prize': 0,
     },
     "multiend":{
         **get_map_data('multiend',time=150),

@@ -155,6 +155,12 @@ class Bank:
             dollar = Dollar(screen,self.scaled_dollars, pos, timer,self.rate_of_scale,self.target)
             self.dollars_for_use.add(dollar)
 
+    def add_cheat_money(self,amount=10000):
+        self.current_money += amount
+        sound_manager.play('buy','mp3')
+        savemanager.savedata({'balance': self.current_money})
+        sound_manager.reset_flag()
+        
     def add_money(self,all_at_once=False):
         if not all_at_once:
             self.current_money += 1

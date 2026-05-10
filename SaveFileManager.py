@@ -85,8 +85,10 @@ class SaveManager():
         for the_map in the_maps:
             if the_map not in save_data['map_states']:
                 save_data['map_states'][the_map] = False
-                if the_map == 'raceway':
+
+                if the_map == 'raceway' or 'freeroam':
                     save_data['map_states']['raceway'] = True
+                    save_data['map_states']['freeroam'] = True
                 updated_map = True
                 print(f'added {the_map}: {save_data['map_states'][the_map]}')
         if updated_map:

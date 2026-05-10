@@ -639,6 +639,53 @@ class Menu:
         #self.maketrail.draw_lines(screen)
         screen.blit(self.bg,(0,0))
 
+class CheatCode:
+    def __init__(self,screen):
+        self.cheat_bar_opened = False
+        self.bar_size = (500,100)
+        self.screen = screen
+        self.cheat_text = ''
+        pg.key.set_repeat(300, 50)
+    def check_for_cheat(self,events):
+        for event in events:
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_BACKQUOTE: #* ``
+                    self.cheat_bar_opened = not self.cheat_bar_opened
+                
+                elif self.cheat_bar_opened:
+                    if event.key == pg.K_BACKSPACE:
+                        
+                        self.cheat_text = self.cheat_text[:-1]
+                    elif event.key == pg.K_RETURN:
+                        self.activate_cheat(self.cheat_text)
+                        self.cheat_text = ''
+                        
+                    else:
+                        self.cheat_text += event.unicode
+
+        if self.cheat_bar_opened:
+            self.make_cheat_bar()
+
+    def activate_cheat(self,text):
+        from banksystem import bank
+        cheat_text = text.lower()
+        if cheat_text == 'ineedmoney':
+            bank.add_cheat_money(10000)
+        
+
+    def make_cheat_bar(self):
+
+        screen_width,screen_height = self.screen.get_width(),self.screen.get_height()
+        screen_rect = self.screen.get_rect()
+
+        text = font.render(self.cheat_text,True,(255,0,0))
+        
+        #x,y = screen_width/2 - self.bar_size[0]//2, screen_height/2 - self.bar_size[1]//2
+        x,y = screen_rect.topleft
+        cheat_bar = pg.draw.rect(self.screen,(0,0,0),(x,y,self.bar_size[0],self.bar_size[1]))
+        cheat_border = pg.draw.rect(self.screen, (255, 255, 255), (x, y, self.bar_size[0], self.bar_size[1]),2)
+        self.screen.blit(text,cheat_bar.midleft)
+
 
         
 

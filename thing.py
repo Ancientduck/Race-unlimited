@@ -30,6 +30,7 @@ from soundsystem import SoundManager
 from banksystem import make_bank,bank
 from SaveFileManager import savemanager
 from chunk_map import ChunkMap
+from menu import CheatCode
 pg.init()
 pg.mixer.init()
 pg.mixer.set_reserved(7)
@@ -51,15 +52,15 @@ map_list = list(maps.keys())
 selected_car_number = car_list.index(dataloader.get_car())
 selected_map_number = map_list.index(dataloader.get_map())
 menu = Menu(screen,screen_size,selected_car_number,selected_map_number)
-
+cheatcode = CheatCode(screen)
 
 
 
 def goto_menu():
-    game_data = run_menu(screen,menu)
+    game_data = run_menu(screen,menu,cheatcode)
     return game_data[0], game_data[1]
 
-game_data = run_menu(screen,menu)#**??** SELECTING THE CAR FROM THE MENU, THIS RUNS THE MENU *???***
+game_data = run_menu(screen,menu,cheatcode)#**??** SELECTING THE CAR FROM THE MENU, THIS RUNS THE MENU *???***
 
 
 """
@@ -1495,25 +1496,25 @@ class Check_points:
         
         return self.pixel_color[:3]
     def get_points_for_checks(self):
+        
         colors_to_check = self.colors_to_check_for_check_points
         im = player_car.img_for_cv2
+        H,W = im.shape[:2]
+        flat = im.reshape(-1,3)
         for color_id,data in colors_to_check.items():
-            color = np.array(data['color'])
-            mask = (self.blue_channel == color[0]) & (self.green_channel == color[1]) & (self.red_channel == color[2])
-            mask2 = self.blue_channel == data['color'][0]
+            color = np.array(data['color'],dtype=flat.dtype)
 
-            color_y, color_x = np.where(mask)
+            matches = np.where(np.all(flat == color,axis=1))[0]
 
+            #mask = np.all(player_car.img_for_cv2 == color, axis=2)
+            #mask2 = self.blue_channel == data['color'][0]
 
-
-            # try:    
-            #     color_x_mid = sum(color_x)/len(color_x)
-            #     color_y_mid = sum(color_y)/len(color_y)
-            # except ZeroDivisionError:
-            #     return
-            if len(color_x) == 0 or len(color_y) == 0: 
-                continue
             
+        
+            if len(matches) == 0:
+                continue
+
+            color_y, color_x = np.divmod(matches,W)
             
             self.colors_found[color_id] = {
                 'pos' : (int(color_x.mean()),int(color_y.mean())), #* get the mid pos
@@ -1731,13 +1732,16 @@ def alot_of_images_for_GameOver(file_name,file_path='game_over_assets',files_num
         images.append(image)
     return images
 
+
+
+
 class GameOver:
     def __init__(self):
         
         self.game_over_screen_alpha_rate = 0
         self.game_over_screen_fade = pg.Surface((screen_width, screen_height))
         self.game_over_screen_fade.fill((0,0,0))
-        self.word_size = 300,300
+        self.word_size = 450,400
         self.you_died_word = alot_of_images_for_GameOver('word',files_num=2,size=(self.word_size))
         #print(self.you_died_word)
         self.you_died = []

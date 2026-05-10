@@ -4,28 +4,27 @@
         "glinton": true,
         "esquire": true,
         "lamborghini": false,
-        "pony": false,
-        "premer": true,
+        "pony": true,
+        "premer": false,
         "thrill": false,
-        "mustang": true,
-        "mclaren": true,
-        "neon blue": true,
-        "BMW": true,
-        "aston martin": false
+        "mustang": false,
+        "mclaren": false,
+        "neon blue": false,
+        "BMW": false
     },
     "map_states": {
+        "freeroam": true,
         "raceway": true,
         "desert": true,
         "phool": true,
-        "elemental": true,
+        "elemental": false,
         "blood_run": false,
         "space": false,
-        "test": true,
         "maze": false,
-        "bangladesh": true,
-        "multiend": true
+        "bangladesh": false,
+        "multiend": false
     },
-    "the_car": "aston_martin",
-    "the_map": "test",
-    "balance": 0
+    "the_car": "pony",
+    "the_map": "phool",
+    "balance": 12700
 }
